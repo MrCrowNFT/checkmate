@@ -27,11 +27,15 @@ func InitDb() {
 
 // creates tables only if the don't exist
 func createTables() {
+	//don't need to save password, will use firebase auth to handle it
 	_, err := DB.Exec(
+		//index the email for faster lookup
 		`
 		CREATE TABLE IF NOT EXISTS users (
-			id TEXT PRIMARY KEY,
-			email TEXT NOT NULL UNIQUE
+			id TEXT PRIMARY KEY, 
+			email TEXT NOT NULL UNIQUE,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			INDEX idx_email (email)
 		);
 
 		CREATE TABLE IF NOT EXISTS tokens (
