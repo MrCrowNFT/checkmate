@@ -1,12 +1,22 @@
-import './App.css'
+import "./App.css";
+import Auth from "./components/auth";
+import Deployents from "./components/deployments";
+import { AuthProvider, useAuth } from "./contexts/auth-context";
 
-function App() {
+function AuthenticatedApp() {
+  const { currentUser } = useAuth();
 
-  return (
-    <>
-      
-    </>
-  )
+  return <div>{currentUser ? <Deployents /> : <Auth />}</div>;
 }
 
-export default App
+function App() {
+  return (
+    <>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
+    </>
+  );
+}
+
+export default App;
