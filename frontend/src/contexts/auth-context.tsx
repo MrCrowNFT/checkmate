@@ -28,49 +28,48 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function useAuth() {
+export const useAuth = () => {
   return useContext(AuthContext) as AuthContextType;
-}
+};
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function signInWithGoogle() {
+  const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Google sign-in failed:", error);
     }
-  }
-
-  async function signInWithEmail(email: string, password: string) {
+  };
+  const signInWithEmail = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Email sign-in failed:", error);
       throw error;
     }
-  }
+  };
 
-  async function signUpWithEmail(email: string, password: string) {
+  const signUpWithEmail = async (email: string, password: string) => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Email sign-up failed:", error);
       throw error;
     }
-  }
+  };
 
-  async function signOut() {
+  const signOut = async () => {
     try {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Sign out failed:", error);
     }
-  }
+  };
 
-  async function getAuthToken() {
+  const getAuthToken = async () => {
     if (!currentUser) return null;
     try {
       return await getIdToken(currentUser);
@@ -78,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Failed to get auth token:", error);
       return null;
     }
-  }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -103,4 +102,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {!loading && children}
     </AuthContext.Provider>
   );
-}
+};

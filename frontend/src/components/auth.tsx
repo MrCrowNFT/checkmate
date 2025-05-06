@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 
-const Login = () => {
+const Auth = () => {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,13 +28,13 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page">
-      <h1>Welcome to My App</h1>
+    <div>
+      <h1>Welcome to Checkmate</h1>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div>{error}</div>}
 
       <form onSubmit={handleEmailAuth}>
-        <div className="form-group">
+        <div>
           <label htmlFor="email">Email</label>
           <input
             type="email"
@@ -45,7 +45,7 @@ const Login = () => {
           />
         </div>
 
-        <div className="form-group">
+        <div>
           <label htmlFor="password">Password</label>
           <input
             type="password"
@@ -56,28 +56,23 @@ const Login = () => {
           />
         </div>
 
-        <button type="submit" disabled={loading} className="email-auth-button">
+        <button type="submit" disabled={loading}>
           {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
         </button>
       </form>
 
       <p>
         {isLogin ? "Don't have an account? " : "Already have an account? "}
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="toggle-auth-mode"
-        >
+        <button onClick={() => setIsLogin(!isLogin)}>
           {isLogin ? "Sign Up" : "Sign In"}
         </button>
       </p>
 
-      <div className="divider">OR</div>
+      <div>OR</div>
 
-      <button onClick={signInWithGoogle} className="google-sign-in-button">
-        Sign in with Google
-      </button>
+      <button onClick={signInWithGoogle}>Sign in with Google</button>
     </div>
   );
 };
 
-export default Login;
+export default Auth;
