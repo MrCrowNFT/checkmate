@@ -1,5 +1,5 @@
-const Deployents = ()=>{
+const Deployments = ()=>{
     return <></>
 }
 
-export default Deployents
+export default Deployments

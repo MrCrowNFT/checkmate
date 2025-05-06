@@ -80,7 +80,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await user.getIdToken(true);
+      }
+
       setCurrentUser(user);
       setLoading(false);
     });
@@ -97,6 +101,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
     getAuthToken,
   };
+
+  if (loading) return null;
+
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
