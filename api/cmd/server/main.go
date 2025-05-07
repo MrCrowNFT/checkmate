@@ -4,13 +4,15 @@ import (
 	"checkmate/api/internal/auth"
 	"checkmate/api/internal/handler"
 	"checkmate/api/internal/storage"
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"context"
 	"time"
+
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
@@ -18,8 +20,19 @@ func main() {
 
 	storage.InitDb()
 
-	// Initialize Firebase Auth
-	err := auth.InitFirebase("") // todo add path and json
+	err := godotenv.Load("../.env")
+	if err != nil {
+		//not necesary fail, since .env may not exists on production
+		log.Printf("Warning: .env file not found: %v", err)
+	}
+
+	firebaseCredPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
+	if firebaseCredPath == "" {
+		firebaseCredPath = "api/internal/config/firebase-credentials.json" // default
+		log.Printf("Using default Firebase credentials path: %s", firebaseCredPath)
+	}
+
+	err = auth.InitFirebase(firebaseCredPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
@@ -61,11 +74,11 @@ func main() {
 	// deadline for server shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	// Shutdown server
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
-	
+
 	log.Println("Server stopped gracefully")
 }
