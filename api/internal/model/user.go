@@ -5,7 +5,8 @@ import (
 )
 
 type User struct {
-	ID        string    `json:"id`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID          string    `json:"id`
+	Email       string    `json:"email"`
+	DisplayName string    `json:"displayName"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
