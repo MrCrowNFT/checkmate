@@ -32,15 +32,16 @@ func createTables() {
 		//index the email for faster lookup
 		`
 		CREATE TABLE IF NOT EXISTS users (
-			id TEXT PRIMARY KEY, 
-			email TEXT NOT NULL UNIQUE,
+			id VARCHAR(128) PRIMARY KEY, 
+          	email VARCHAR(255) NOT NULL,
+          	display_name VARCHAR(255),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			INDEX idx_email (email)
 		);
 
 		CREATE TABLE IF NOT EXISTS tokens (
-			id INTEGER PRIMARY KEY,
-			user_id TEXT,
+			id VARCHAR(128) PRIMARY KEY,
+			user_id VARCHAR(128),
 			provider TEXT,
 			token TEXT,
 			FOREIGN KEY(user_id) REFERENCES users(id)
