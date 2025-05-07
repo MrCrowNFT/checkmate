@@ -1,0 +1,19 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/api/bin/
+/api/checkmate
+node_modules
+
+# Environment variables
+.env
+.env.local
+api/.env
+frontend/.env
+desktop/.env
+
+# Credentials
+/api/internal/config/firebase-credentials.json
