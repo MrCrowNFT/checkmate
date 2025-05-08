@@ -1,4 +1,3 @@
-import "./App.css";
 import Auth from "./components/auth";
 import Deployments from "./components/deployments";
 import { AuthProvider, useAuth } from "./contexts/auth-context";
