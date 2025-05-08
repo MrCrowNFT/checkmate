@@ -18,9 +18,14 @@ import (
 
 func main() {
 
+	currentDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get current directory: %v", err)
+	}
+	log.Printf("Running from directory: %s", currentDir)
 	storage.InitDb()
 
-	err := godotenv.Load("../.env")
+	err = godotenv.Load("./.env")
 	if err != nil {
 		//not necesary fail, since .env may not exists on production
 		log.Printf("Warning: .env file not found: %v", err)
@@ -28,7 +33,7 @@ func main() {
 
 	firebaseCredPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
 	if firebaseCredPath == "" {
-		firebaseCredPath = "api/internal/config/firebase-credentials.json" // default
+		firebaseCredPath = "../../internal/config/firebase-credentials.json" // default
 		log.Printf("Using default Firebase credentials path: %s", firebaseCredPath)
 	}
 
