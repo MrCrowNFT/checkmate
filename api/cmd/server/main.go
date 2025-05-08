@@ -45,11 +45,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	//endpoints
-	mux.HandleFunc("/auth", auth.Authenticate(handler.GetCurrentUser))
+	mux.HandleFunc("/", auth.Authenticate(handler.GetCurrentUser))
 
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:1420"}, // Tauri default dev port
+		AllowedOrigins:   []string{"http://localhost:1420", "http://localhost:5173"}, // Tauri default dev port + current frontend
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,

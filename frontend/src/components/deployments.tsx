@@ -8,13 +8,16 @@ const Deployments = () => {
   const [error, setError] = useState("");
   const { currentUser } = useAuth();
 
+  //todo Fix the api call to get user
+  //todo Add typing of user
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!currentUser) return;
 
       try {
         // call backend
-        const response = await api.get("/auth");
+        const response = await api.get("/");
         setUser(response.data);
       } catch (err) {
         console.error("Error fetching user profile:", err);
