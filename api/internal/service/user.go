@@ -4,6 +4,9 @@ import (
 	"checkmate/api/internal/model"
 	"checkmate/api/internal/storage"
 	"context"
+	"database/sql"
+	"fmt"
+	"log"
 	"time"
 )
 
@@ -12,9 +15,9 @@ import (
 // get user byt id from db
 func GetUserById(ctx context.Context, id string) (*model.User, error) {
 
-	var user model.User
-	query := `SELECT * FROM users WHERE id= ?`
+	query := `SELECT id, email, display_name, created_at FROM users WHERE id = ?`
 
+	var user model.User
 	err := storage.DB.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
@@ -22,12 +25,14 @@ func GetUserById(ctx context.Context, id string) (*model.User, error) {
 		&user.CreatedAt,
 	)
 
-	if err != nil {
-		// In case user not found
-		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
-		}
-		return nil, err
+	if err == sql.ErrNoRows {
+		// not found but not an error
+		log.Printf("User not found with ID: %s", id)
+		return nil, nil
+	} else if err != nil {
+		// database error
+		log.Printf("Error querying user: %v", err)
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return &user, nil
@@ -35,31 +40,31 @@ func GetUserById(ctx context.Context, id string) (*model.User, error) {
 
 // create new user in db
 func CreateUser(ctx context.Context, user *model.User) error {
-	db := storage.DB
+	log.Printf("Creating new user with ID: %s, Email: %s", user.ID, user.Email)
 
-	//creation time if not already set
+	// creation time if not set
 	if user.CreatedAt.IsZero() {
 		user.CreatedAt = time.Now()
 	}
 
-	// UPSERT pattern to handle insert and update
-	query := `
-		INSERT INTO users (id, email, display_name, created_at)
-		VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE
-			email = VALUES(email),
-			display_name = VALUES(display_name)
-	`
+	query := `INSERT INTO users (id, email, display_name, created_at) VALUES (?, ?, ?, ?)`
 
-	_, err := db.ExecContext(ctx, query,
+	_, err := storage.DB.ExecContext(
+		ctx,
+		query,
 		user.ID,
 		user.Email,
 		user.DisplayName,
 		user.CreatedAt,
 	)
 
-	return err
+	if err != nil {
+		log.Printf("Error creating user: %v", err)
+		return fmt.Errorf("failed to create user: %w", err)
+	}
 
+	log.Printf("Successfully created user with ID: %s", user.ID)
+	return nil
 }
 
 // update user in db

@@ -45,7 +45,7 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		//check token format -> should have bearer (jwt)
-		idToken := strings.TrimPrefix(authHeader, "Bearer")
+		idToken := strings.TrimPrefix(authHeader, "Bearer ")
 		if idToken == authHeader {
 			http.Error(w, "Authorization header format must be Bearer {token}", http.StatusUnauthorized)
 			return
@@ -54,7 +54,7 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		//verify token id
 		token, err := authClient.VerifyIDToken(r.Context(), idToken)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			http.Error(w, fmt.Sprintf("Invalid token: %v", err), http.StatusUnauthorized) // Added error details for debugging
 			return
 		}
 
