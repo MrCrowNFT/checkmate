@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"path/filepath"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -26,11 +27,11 @@ func InitDb() {
 }
 
 // creates tables only if the don't exist
-func createTables() {
+func createTables() error {
 	//don't need to save password, will use firebase auth to handle it
 	_, err := DB.Exec(
 		//todo: index the email for faster lookup->INDEX idx_email (email)
-		//todo: can't cirrently since i am using sqlite 
+		//todo: can't cirrently since i am using sqlite
 		`
 		CREATE TABLE IF NOT EXISTS users (
 			id VARCHAR(128) PRIMARY KEY, 
@@ -48,6 +49,9 @@ func createTables() {
 		);
 		`)
 	if err != nil {
-		log.Fatal("Failed to create tables:", err)
+		log.Printf("Failed to create tables: %v", err)
+		return err
 	}
+
+	return nil
 }
