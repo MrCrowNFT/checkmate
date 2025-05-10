@@ -46,6 +46,7 @@ func main() {
 
 	//endpoints
 	mux.HandleFunc("/", auth.Authenticate(handler.GetCurrentUser))
+	
 
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{

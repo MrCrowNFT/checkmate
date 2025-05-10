@@ -31,22 +31,51 @@ func createTables() error {
 	//don't need to save password, will use firebase auth to handle it
 	_, err := DB.Exec(
 		//todo: index the email for faster lookup->INDEX idx_email (email)
-		//todo: can't cirrently since i am using sqlite
+		//todo: can't currently since i am using sqlite
 		`
-		CREATE TABLE IF NOT EXISTS users (
-			id VARCHAR(128) PRIMARY KEY, 
-          	email VARCHAR(255) NOT NULL,
-          	display_name VARCHAR(255),
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
+		-- Users table;
+	CREATE TABLE IF NOT EXISTS users (
+    	id VARCHAR(128) PRIMARY KEY, 
+    	email VARCHAR(255) NOT NULL,
+	    display_name VARCHAR(255),
+    	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
 
-		CREATE TABLE IF NOT EXISTS tokens (
-			id VARCHAR(128) PRIMARY KEY,
-			user_id VARCHAR(128),
-			provider TEXT,
-			token TEXT,
-			FOREIGN KEY(user_id) REFERENCES users(id)
-		);
+	-- Platform credentials;
+	CREATE TABLE IF NOT EXISTS platform_credentials (
+    	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	    user_id VARCHAR(128) NOT NULL,
+    	platform VARCHAR(50) NOT NULL,  -- 'render', 'vercel', etc.
+	    name VARCHAR(255) NOT NULL,     -- User-friendly name
+	    api_key TEXT NOT NULL,          -- Encrypted API key/PAT
+	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);
+
+	-- Cache for deployment data
+	CREATE TABLE IF NOT EXISTS deployment_cache (
+    	id VARCHAR(255) NOT NULL,       -- External deployment ID
+    	platform_credential_id INTEGER NOT NULL,
+    	name VARCHAR(255) NOT NULL,
+    	status VARCHAR(50) NOT NULL,    -- 'live', 'building', 'failed'
+    	url VARCHAR(255),
+    	last_deployed_at TIMESTAMP,
+	    branch VARCHAR(255),
+    	service_type VARCHAR(100),      -- 'static', 'web-service', etc.
+    	framework VARCHAR(100),         -- 'next', 'react', etc.
+	    last_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    	metadata TEXT,                  -- JSON data for platform-specific fields
+	    PRIMARY KEY (id, platform_credential_id),
+    	FOREIGN KEY (platform_credential_id) REFERENCES platform_credentials(id) ON DELETE CASCADE
+	);
+
+	-- User preferences
+	CREATE TABLE IF NOT EXISTS user_preferences (
+    	user_id VARCHAR(128) PRIMARY KEY,
+	    notification_settings TEXT,     -- JSON data for notification preferences
+    	ui_settings TEXT,               -- JSON data for UI preferences
+	    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	);
 		`)
 	if err != nil {
 		log.Printf("Failed to create tables: %v", err)
