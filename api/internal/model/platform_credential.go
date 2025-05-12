@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+//stored in sql db
 type PlatformCredential struct {
 	ID        int       `json:"id"`
 	UserID    string    `json:"userId"`
@@ -13,6 +14,7 @@ type PlatformCredential struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+//user input
 type PlatformCredentialInput struct {
 	Platform string `json:"platform"`
 	Name     string `json:"name"`

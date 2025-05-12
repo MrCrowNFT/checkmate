@@ -8,15 +8,13 @@ import (
 	"time"
 )
 
-//todo do i need a get by id fn?
-
 //Credentials CRUD operations
 
 // get all platform credentials -> for when loading the dashoard
 func GetPlatformCredentials(ctx context.Context, userID string) ([]model.PlatformCredential, error) {
-	query := `SELECT id, user_id, platform, api_key, created_at 
-			FROM platform_credentials
-			WHERE user_id = ?;`
+	query := `SELECT id, user_id, platform, name, api_key, created_at 
+        FROM platform_credentials
+        WHERE user_id = ?;`
 
 	rows, err := storage.DB.QueryContext(ctx, query, userID)
 	if err != nil {
@@ -33,6 +31,12 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 		if err := rows.Scan(&cred.ID, &cred.UserID, &cred.Platform, &cred.Name, &cred.APIKey, &cred.CreatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan credential row: %w", err)
 		}
+		//decrypt the api key
+		//this should only be used internally so there should not be a problem
+		cred.APIKey, err = decryptAPIKey(cred.APIKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt API key: %w", err)
+		}
 		credentials = append(credentials, cred)
 	}
 
@@ -40,16 +44,50 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 
 }
 
-//todo should i encode the api key here? careful storing it without encoding
-// create new pltform credentials
+// not sure if really need this one just yet
+func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*model.PlatformCredential, error) {
+	query := `SELECT id, user_id, platform, name, api_key, created_at 
+              FROM platform_credentials
+              WHERE id = ? AND user_id = ?;`
+
+	var cred model.PlatformCredential
+	err := storage.DB.QueryRowContext(ctx, query, id, userID).Scan(
+		&cred.ID, &cred.UserID, &cred.Platform, &cred.Name, &cred.APIKey, &cred.CreatedAt)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get credential: %w", err)
+	}
+
+	cred.APIKey, err = decryptAPIKey(cred.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt API key: %w", err)
+	}
+
+	return &cred, nil
+}
+
+// todo should i encode the api key here? careful storing it without encoding
+// create new plstform credentials
 func CreatePlatformCredential(ctx context.Context, userID string, input *model.PlatformCredentialInput) (*model.PlatformCredential, error) {
-	query := `INSTER INTO platform_credentials (user_id, platform, name, api_key, created_at)
-              VALUES (?, ?, ?, ?, ?)`
+	//validate credentials before creating cred
+	err := validateCredential(ctx, input.Platform, input.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("invalid credentials: %w", err)
+	}
+
+	query := `INSERT INTO platform_credentials (user_id, platform, name, api_key, created_at)
+          VALUES (?, ?, ?, ?, ?)`
 
 	now := time.Now()
 
+	//encrypt the api key before storage
+	encryptedAPIKey, err := encryptAPIKey(input.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt API key: %w", err)
+	}
+
 	result, err := storage.DB.ExecContext(
-		ctx, query, userID, input.Platform, input.Name, input.APIKey, now)
+		ctx, query, userID, input.Platform, input.Name, encryptedAPIKey, now)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create platform credential: %w", err)
 	}
@@ -65,7 +103,7 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 		UserID:    userID,
 		Platform:  input.Platform,
 		Name:      input.Name,
-		APIKey:    input.APIKey,
+		APIKey:    encryptedAPIKey,
 		CreatedAt: now,
 	}, nil
 
@@ -114,5 +152,9 @@ func DeletePlatformCredential(ctx context.Context, id int, userID string) error 
 		return fmt.Errorf("credential not found or you don't have permission to delete it")
 	}
 
+	return nil
+}
+
+func validateCredential(ctx context.Context, platform, apiKey string) error {
 	return nil
 }

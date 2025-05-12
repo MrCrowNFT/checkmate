@@ -68,14 +68,7 @@ func createTables() error {
 	    PRIMARY KEY (id, platform_credential_id),
     	FOREIGN KEY (platform_credential_id) REFERENCES platform_credentials(id) ON DELETE CASCADE
 	);
-
-	-- User preferences
-	CREATE TABLE IF NOT EXISTS user_preferences (
-    	user_id VARCHAR(128) PRIMARY KEY,
-	    notification_settings TEXT,     
-    	ui_settings TEXT,               
-	    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-	);
+	
 		`)
 	if err != nil {
 		log.Printf("Failed to create tables: %v", err)
