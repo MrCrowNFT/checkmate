@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+//todo do i need a get by id fn?
+
 //Credentials CRUD operations
 
 // get all platform credentials -> for when loading the dashoard
