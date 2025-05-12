@@ -1,8 +1,12 @@
 package utils
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"io"
 	"os"
 )
 
@@ -32,4 +36,34 @@ func InitEncryption() error {
 
 	encryptionKey = key
 	return nil
+}
+
+func EncryptString(plaintext string) (string, error) {
+	if encryptionKey == nil {
+		return "", errors.New("encryption not initialized")
+	}
+	
+	// Create cipher block
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		return "", err
+	}
+	
+	// Create GCM cipher mode
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	
+	// Create nonce 
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+	
+	// Encrypt data
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	
+	// Encode as base64 string for storage
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
