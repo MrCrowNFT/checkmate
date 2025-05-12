@@ -5,7 +5,10 @@ import (
 	"checkmate/api/internal/storage"
 	"context"
 	"fmt"
+	"time"
 )
+
+//Credentials CRUD operations
 
 // get all platform credentials -> for when loading the dashoard
 func GetPlatformCredentials(ctx context.Context, userID string) ([]model.PlatformCredential, error) {
@@ -32,5 +35,35 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 	}
 
 	return credentials, nil
+
+}
+
+// create new pltform credentials
+func CreatePlatformCredential(ctx context.Context, userID string, input *model.PlatformCredentialInput) (*model.PlatformCredential, error) {
+	query := `INSTER INTO platform_credentials (user_id, platform, name, api_key, created_at)
+              VALUES (?, ?, ?, ?, ?)`
+
+	now := time.Now()
+
+	result, err := storage.DB.ExecContext(
+		ctx, query, userID, input.Platform, input.Name, input.APIKey, now)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create platform credential: %w", err)
+	}
+
+	//get the id of the last insert to return it to the user
+	id, err := result.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last insert ID: %w", err)
+	}
+
+	return &model.PlatformCredential{
+		ID:        int(id),
+		UserID:    userID,
+		Platform:  input.Platform,
+		Name:      input.Name,
+		APIKey:    input.APIKey,
+		CreatedAt: now,
+	}, nil
 
 }
