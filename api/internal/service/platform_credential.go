@@ -40,6 +40,7 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 
 }
 
+//todo should i encode the api key here? careful storing it without encoding
 // create new pltform credentials
 func CreatePlatformCredential(ctx context.Context, userID string, input *model.PlatformCredentialInput) (*model.PlatformCredential, error) {
 	query := `INSTER INTO platform_credentials (user_id, platform, name, api_key, created_at)
