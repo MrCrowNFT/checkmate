@@ -67,3 +67,28 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 	}, nil
 
 }
+
+// for updating platform credential ->needs cred id and user id and the whole PlatformCredentialInput (keep this in mind for the frontend)
+func UpdatePlatformCredential(ctx context.Context, id int, userID string, input *model.PlatformCredentialInput) error {
+	query := `UPDATE platform_credentials
+              SET platform = ?, name = ?, api_key = ?
+              WHERE id = ? AND user_id = ?`
+
+	result, err := storage.DB.ExecContext(
+		ctx, query, input.Platform, input.Name, input.APIKey, id, userID)
+
+	if err != nil {
+		return fmt.Errorf("failed to update platform credential: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("credential not found or you don't have permission to update it")
+	}
+
+	return nil
+}
