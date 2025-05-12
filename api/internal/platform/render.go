@@ -85,13 +85,13 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 	//decode response into renderServiceResponses array so that we can loop
 	//and append each one as a mode.deployment into new array
-	var serviceResponses RenderServicesResponse
+	var serviceResponses []RenderServiceResponse
 	if err := json.NewDecoder(resp.Body).Decode(&serviceResponses); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	var deployments []model.Deployment
-	for _, response := range serviceResponses.Services {
+	for _, response := range serviceResponses {
 		service := response.Service
 		//determine status
 		status := determineDeploymentStatus(service)
@@ -130,6 +130,8 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 }
 
+
+//todo there are more status in render, need to check them out
 func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
 	switch strings.ToLower(service.Status) {
 	case "live", "up":
