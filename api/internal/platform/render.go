@@ -111,13 +111,14 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 	//decode response into renderServiceResponses array so that we can loop
 	//and append each one as a mode.deployment into new array
-	var services []RenderService
-	if err := json.NewDecoder(resp.Body).Decode(&services); err != nil {
+	var serviceResponses []RenderServiceResponse
+	if err := json.NewDecoder(resp.Body).Decode(&serviceResponses); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	deployments := make([]model.Deployment, 0, len(services))
-	for _, service := range services {
+	deployments := make([]model.Deployment, 0, len(serviceResponses))
+	for _, response := range serviceResponses {
+		service := response.Service
 		//determine status
 		status := determineDeploymentStatus(service)
 
