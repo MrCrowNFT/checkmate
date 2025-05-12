@@ -92,3 +92,24 @@ func UpdatePlatformCredential(ctx context.Context, id int, userID string, input 
 
 	return nil
 }
+
+// delete a platform credential
+func DeletePlatformCredential(ctx context.Context, id int, userID string) error {
+	query := `DELETE FROM platform_credentials WHERE id = ? AND user_id = ?`
+
+	result, err := storage.DB.ExecContext(ctx, query, id, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete platform credential: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("credential not found or you don't have permission to delete it")
+	}
+
+	return nil
+}
