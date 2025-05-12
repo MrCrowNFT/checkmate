@@ -25,30 +25,104 @@ func NewRenderClient(apiKey string) *RenderClient {
 		},
 	}
 }
-//render returns an array of this
-type RenderService struct {
-	ID                string    `json:"id"`
-	Name              string    `json:"name"`
-	Type              string    `json:"type"`
-	ServiceDetails    *ServiceDetails `json:"serviceDetails"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
-	Suspended         string    `json:"suspended"`
-	URL               string    `json:"url"`
-	Branch            string    `json:"branch"`
-	Status            string    `json:"status"`
-	AutoDeploy        bool      `json:"autoDeploy"`
-	LastSuccessfulDeployAt *time.Time `json:"lastSuccessfulDeployAt"`
+
+// render returns an array of this
+type RenderServiceResponse struct {
+	Service struct {
+		ID           string    `json:"id"`
+		Name         string    `json:"name"`
+		Type         string    `json:"type"`
+		Branch       string    `json:"branch"`
+		Suspended    string    `json:"suspended"`
+		CreatedAt    time.Time `json:"createdAt"`
+		UpdatedAt    time.Time `json:"updatedAt"`
+		AutoDeploy   string    `json:"autoDeploy"`
+		Repo         string    `json:"repo"`
+		DashboardURL string    `json:"dashboardUrl"`
+
+		ServiceDetails struct {
+			BuildCommand string `json:"buildCommand"`
+			PublishPath  string `json:"publishPath"`
+			URL          string `json:"url"`
+			BuildPlan    string `json:"buildPlan"`
+			ParentServer *struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+			} `json:"parentServer,omitempty"`
+		} `json:"serviceDetails"`
+	} `json:"service"`
+	Cursor string `json:"cursor,omitempty"`
 }
 
-type ServiceDetails struct {
-	BuildCommand         string `json:"buildCommand"`
-	StartCommand         string `json:"startCommand"`
-	Env                  string `json:"env"`
-	PlanID               string `json:"planId"`
-	Region               string `json:"region"`
-	Pullrequests         string `json:"pullrequests"`
-	NumInstances         int    `json:"numInstances"`
-	Domains              []string `json:"domains"`
-	DetectedFramework    string `json:"detectedFramework"`
+func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	//decode response into renderServiceResponses array so that we can loop
+	//and append each one as a mode.deployment into new array
+	var renderServiceResponses []RenderServiceResponse
+	if err := json.NewDecoder(resp.Body).Decode(&renderServiceResponses); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	var deployments []model.Deployment
+	for _, response := range renderServiceResponses {
+		service := response.Service
+		status := model.DeploymentStatusUnknown
+
+		//determine status
+		if service.Suspended == "suspended" {
+			status = model.DeploymentStatusCanceled
+		} else {
+			//todo add a way to detect status based on the info
+			status = model.DeploymentStatusLive
+		}
+
+		metadata := map[string]interface{}{
+			"type":         service.Type,
+			"autoDeploy":   service.AutoDeploy,
+			"suspended":    service.Suspended,
+			"createdAt":    service.CreatedAt,
+			"updatedAt":    service.UpdatedAt,
+			"repo":         service.Repo,
+			"dashboardUrl": service.DashboardURL,
+			"buildPlan":    service.ServiceDetails.BuildPlan,
+		}
+
+		//add parent server if exists
+		if service.ServiceDetails.ParentServer != nil {
+			metadata["parentServerId"] = service.ServiceDetails.ParentServer.ID
+			metadata["parentServerName"] = service.ServiceDetails.ParentServer.Name
+		}
+
+		//append as deployment
+		deployments = append(deployments, model.Deployment{
+			ID:            service.ID,
+			Name:          service.Name,
+			Status:        status,
+			URL:           service.ServiceDetails.URL,
+			Branch:        service.Branch,
+			ServiceType:   service.Type,
+			Framework:     "", // render doesn't provide framework directly
+			LastUpdatedAt: service.UpdatedAt,
+			Metadata:      metadata,
+		})
+	}
+	return deployments, nil
+
 }

@@ -27,3 +27,5 @@ type Deployment struct {
 	LastUpdatedAt      time.Time              `json:"lastUpdatedAt"`
 	Metadata           map[string]interface{} `json:"metadata"`
 }
+
+
