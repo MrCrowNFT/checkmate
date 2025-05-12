@@ -113,7 +113,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 			URL:           service.ServiceDetails.URL,
 			Branch:        service.Branch,
 			ServiceType:   service.Type,
-			Framework:     "", // render doesn't provide framework directly
+			Framework:     inferFrameworkFromRepo(service.Repo), // render doesn't provide framework directly so we use helper fn
 			LastUpdatedAt: service.UpdatedAt,
 			Metadata:      metadata,
 		})
@@ -135,5 +135,32 @@ func determineDeploymentStatus(service RenderServiceResponse.Service) model.Depl
 	default:
 		return model.DeploymentStatusUnknown
 	}
+}
+
+func inferFrameworkFromRepo(repoURL string) string {
+	repoURL = strings.ToLower(repoURL)
+	frameworks := map[string]string{
+		"react":     "react",
+		"vue":       "vue",
+		"angular":   "angular",
+		"nextjs":    "next.js",
+		"nuxtjs":    "nuxt.js",
+		"gatsby":    "gatsby",
+		"svelte":    "svelte",
+		"remix":     "remix",
+		"astro":     "astro",
+		"express":   "express",
+		"nestjs":    "nest.js",
+		"flask":     "flask",
+		"django":    "django",
+		"fastapi":   "fastapi",
+	}
+
+	for framework, name := range frameworks {
+		if strings.Contains(repoURL, framework) {
+			return name
+		}
+	}
+	return ""
 }
 
