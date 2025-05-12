@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"time"
+	"strings"
 )
 
 const renderAPIBaseURL = "https://api.render.com/v1"
@@ -59,6 +60,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
+
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
 	req.Header.Set("Accept", "application/json")
 
@@ -83,15 +85,8 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 	var deployments []model.Deployment
 	for _, response := range renderServiceResponses {
 		service := response.Service
-		status := model.DeploymentStatusUnknown
-
 		//determine status
-		if service.Suspended == "suspended" {
-			status = model.DeploymentStatusCanceled
-		} else {
-			//todo add a way to detect status based on the info
-			status = model.DeploymentStatusLive
-		}
+		status := determineDeploymentStatus(service)
 
 		metadata := map[string]interface{}{
 			"type":         service.Type,
@@ -126,3 +121,19 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 	return deployments, nil
 
 }
+
+func determineDeploymentStatus(service RenderServiceResponse.Service) model.DeploymentStatus {
+	switch strings.ToLower(service.Status) {
+	case "live", "up":
+		return model.DeploymentStatusLive
+	case "suspended":
+		return model.DeploymentStatusCanceled
+	case "deploying", "build":
+		return model.DeploymentStatusDeploying
+	case "failed", "error":
+		return model.DeploymentStatusFailed
+	default:
+		return model.DeploymentStatusUnknown
+	}
+}
+
