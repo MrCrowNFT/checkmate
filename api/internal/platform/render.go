@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 )
 
 const renderAPIBaseURL = "https://api.render.com/v1"
@@ -35,6 +35,7 @@ type RenderServiceResponse struct {
 		Type         string    `json:"type"`
 		Branch       string    `json:"branch"`
 		Suspended    string    `json:"suspended"`
+		Status       string    `json:"status"`
 		CreatedAt    time.Time `json:"createdAt"`
 		UpdatedAt    time.Time `json:"updatedAt"`
 		AutoDeploy   string    `json:"autoDeploy"`
@@ -53,6 +54,11 @@ type RenderServiceResponse struct {
 		} `json:"serviceDetails"`
 	} `json:"service"`
 	Cursor string `json:"cursor,omitempty"`
+}
+
+type RenderServicesResponse struct {
+	Services []RenderServiceResponse `json:"services"`
+	Cursor   string                  `json:"cursor,omitempty"`
 }
 
 func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, error) {
@@ -86,7 +92,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 	for _, response := range renderServiceResponses {
 		service := response.Service
 		//determine status
-		status := determineDeploymentStatus(service)
+		status := determineDeploymentStatus(status := determineDeploymentStatus(response.Service))
 
 		metadata := map[string]interface{}{
 			"type":         service.Type,
@@ -123,37 +129,37 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 }
 
 func determineDeploymentStatus(service RenderServiceResponse.Service) model.DeploymentStatus {
-	switch strings.ToLower(service.Status) {
-	case "live", "up":
-		return model.DeploymentStatusLive
-	case "suspended":
-		return model.DeploymentStatusCanceled
-	case "deploying", "build":
-		return model.DeploymentStatusDeploying
-	case "failed", "error":
-		return model.DeploymentStatusFailed
-	default:
-		return model.DeploymentStatusUnknown
-	}
+    switch strings.ToLower(service.Status) {
+    case "live", "up":
+        return model.DeploymentStatusLive
+    case "suspended":
+        return model.DeploymentStatusCanceled
+    case "deploying", "build":
+        return model.DeploymentStatusDeploying
+    case "failed", "error":
+        return model.DeploymentStatusFailed
+    default:
+        return model.DeploymentStatusUnknown
+    }
 }
 
 func inferFrameworkFromRepo(repoURL string) string {
 	repoURL = strings.ToLower(repoURL)
 	frameworks := map[string]string{
-		"react":     "react",
-		"vue":       "vue",
-		"angular":   "angular",
-		"nextjs":    "next.js",
-		"nuxtjs":    "nuxt.js",
-		"gatsby":    "gatsby",
-		"svelte":    "svelte",
-		"remix":     "remix",
-		"astro":     "astro",
-		"express":   "express",
-		"nestjs":    "nest.js",
-		"flask":     "flask",
-		"django":    "django",
-		"fastapi":   "fastapi",
+		"react":   "react",
+		"vue":     "vue",
+		"angular": "angular",
+		"nextjs":  "next.js",
+		"nuxtjs":  "nuxt.js",
+		"gatsby":  "gatsby",
+		"svelte":  "svelte",
+		"remix":   "remix",
+		"astro":   "astro",
+		"express": "express",
+		"nestjs":  "nest.js",
+		"flask":   "flask",
+		"django":  "django",
+		"fastapi": "fastapi",
 	}
 
 	for framework, name := range frameworks {
@@ -163,4 +169,3 @@ func inferFrameworkFromRepo(repoURL string) string {
 	}
 	return ""
 }
-
