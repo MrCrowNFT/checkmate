@@ -2,6 +2,7 @@ package service
 
 import (
 	"checkmate/api/internal/model"
+	"checkmate/api/internal/platform"
 	"checkmate/api/internal/storage"
 	"context"
 	"fmt"
@@ -155,6 +156,16 @@ func DeletePlatformCredential(ctx context.Context, id int, userID string) error 
 	return nil
 }
 
-func validateCredential(ctx context.Context, platform, apiKey string) error {
-	return nil
+func validateCredential(ctx context.Context, platformName string, apiKey string) error {
+	switch platformName {
+	case "render":
+		client := platform.NewRenderClient(apiKey)
+		err := client.VerifyCredentials(ctx)
+		return err
+	case "vercel":
+		// TODO: Implement Vercel validation
+		return fmt.Errorf("vercel validation not implemented")
+	default:
+		return fmt.Errorf("unsupported platform: %s", platformName)
+	}
 }
