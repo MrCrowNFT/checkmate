@@ -4,6 +4,7 @@ import (
 	"checkmate/api/internal/auth"
 	"checkmate/api/internal/handler"
 	"checkmate/api/internal/storage"
+	"checkmate/api/internal/utils"
 	"context"
 	"log"
 	"net/http"
@@ -18,19 +19,23 @@ import (
 
 func main() {
 
+	//debugging the working directory
 	currentDir, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Failed to get current directory: %v", err)
 	}
 	log.Printf("Running from directory: %s", currentDir)
+
 	storage.InitDb()
 
+	//get enviroment variables
 	err = godotenv.Load("./.env")
 	if err != nil {
 		//not necesary fail, since .env may not exists on production
 		log.Printf("Warning: .env file not found: %v", err)
 	}
 
+	//get firebase credentials path to initialize auth
 	firebaseCredPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
 	if firebaseCredPath == "" {
 		firebaseCredPath = "../../internal/config/firebase-credentials.json" // default
@@ -42,11 +47,15 @@ func main() {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
 
+	//initialize encryption for creating and getting platform credentials
+	if err := utils.InitEncryption(); err != nil {
+		log.Fatalf("Failed to initialize encryption: %v", err)
+	}
+
 	mux := http.NewServeMux()
 
 	//endpoints
 	mux.HandleFunc("/", auth.Authenticate(handler.GetCurrentUser))
-	
 
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{

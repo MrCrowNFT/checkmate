@@ -4,6 +4,7 @@ import (
 	"checkmate/api/internal/model"
 	"checkmate/api/internal/platform"
 	"checkmate/api/internal/storage"
+	"checkmate/api/internal/utils"
 	"context"
 	"fmt"
 	"time"
@@ -34,7 +35,7 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 		}
 		//decrypt the api key
 		//this should only be used internally so there should not be a problem
-		cred.APIKey, err = decryptAPIKey(cred.APIKey)
+		cred.APIKey, err = utils.DecryptString(cred.APIKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt API key: %w", err)
 		}
@@ -59,7 +60,7 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 		return nil, fmt.Errorf("failed to get credential: %w", err)
 	}
 
-	cred.APIKey, err = decryptAPIKey(cred.APIKey)
+	cred.APIKey, err = utils.DecryptString(cred.APIKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt API key: %w", err)
 	}
@@ -67,7 +68,6 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 	return &cred, nil
 }
 
-// todo should i encode the api key here? careful storing it without encoding
 // create new plstform credentials
 func CreatePlatformCredential(ctx context.Context, userID string, input *model.PlatformCredentialInput) (*model.PlatformCredential, error) {
 	//validate credentials before creating cred
@@ -82,7 +82,7 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 	now := time.Now()
 
 	//encrypt the api key before storage
-	encryptedAPIKey, err := encryptAPIKey(input.APIKey)
+	encryptedAPIKey, err := utils.EncryptString(input.APIKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt API key: %w", err)
 	}
