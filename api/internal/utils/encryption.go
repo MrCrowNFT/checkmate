@@ -67,3 +67,43 @@ func EncryptString(plaintext string) (string, error) {
 	// Encode as base64 string for storage
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
+
+func DecryptString(encryptedStr string) (string, error) {
+	if encryptionKey == nil {
+		return "", errors.New("encryption not initialized")
+	}
+	
+	// Decode from base64
+	ciphertext, err := base64.StdEncoding.DecodeString(encryptedStr)
+	if err != nil {
+		return "", err
+	}
+	
+	// Create cipher block
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		return "", err
+	}
+	
+	// Create GCM cipher mode
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	
+	// Ensure ciphertext is large enough
+	if len(ciphertext) < gcm.NonceSize() {
+		return "", errors.New("ciphertext too short")
+	}
+	
+	// Extract nonce and ciphertext
+	nonce, ciphertext := ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():]
+	
+	// Decrypt data
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(plaintext), nil
+}
