@@ -63,6 +63,32 @@ type RenderServicesResponse struct {
 	Cursor   string                  `json:"cursor,omitempty"`
 }
 
+// verify valid api key 
+func (c *RenderClient) VerifyCredentials(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("invalid API key")
+	} else if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("received non-OK response: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
 func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
 	if err != nil {
@@ -90,7 +116,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	var deployments []model.Deployment
+	deployments := make([]model.Deployment, len(serviceResponses))
 	for _, response := range serviceResponses {
 		service := response.Service
 		//determine status
@@ -130,8 +156,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 }
 
-
-//todo there are more status in render, need to check them out
+// todo there are more status in render, need to check them out
 func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
 	switch strings.ToLower(service.Status) {
 	case "live", "up":
