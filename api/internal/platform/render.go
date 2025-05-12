@@ -63,7 +63,7 @@ type RenderServicesResponse struct {
 	Cursor   string                  `json:"cursor,omitempty"`
 }
 
-// verify valid api key 
+// verify valid api key
 func (c *RenderClient) VerifyCredentials(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
 	if err != nil {
@@ -111,14 +111,13 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 	//decode response into renderServiceResponses array so that we can loop
 	//and append each one as a mode.deployment into new array
-	var serviceResponses []RenderServiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&serviceResponses); err != nil {
+	var services []RenderService
+	if err := json.NewDecoder(resp.Body).Decode(&services); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	deployments := make([]model.Deployment, len(serviceResponses))
-	for _, response := range serviceResponses {
-		service := response.Service
+	deployments := make([]model.Deployment, 0, len(services))
+	for _, service := range services {
 		//determine status
 		status := determineDeploymentStatus(service)
 
@@ -139,17 +138,24 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 			metadata["parentServerName"] = service.ServiceDetails.ParentServer.Name
 		}
 
+		// calculate last deployed time (approximation based on updatedAt) for caching purpuses
+		var lastDeployed *time.Time
+		if service.Status == "live" || service.UpdatedAt != service.CreatedAt {
+			lastDeployed = &service.UpdatedAt
+		}
+
 		//append as deployment
 		deployments = append(deployments, model.Deployment{
-			ID:            service.ID,
-			Name:          service.Name,
-			Status:        status,
-			URL:           service.ServiceDetails.URL,
-			Branch:        service.Branch,
-			ServiceType:   service.Type,
-			Framework:     inferFrameworkFromRepo(service.Repo), // render doesn't provide framework directly so we use helper fn
-			LastUpdatedAt: service.UpdatedAt,
-			Metadata:      metadata,
+			ID:             service.ID,
+			Name:           service.Name,
+			Status:         status,
+			URL:            service.ServiceDetails.URL,
+			LastDeployedAt: lastDeployed,
+			Branch:         service.Branch,
+			ServiceType:    service.Type,
+			Framework:      inferFrameworkFromRepo(service.Repo),
+			LastUpdatedAt:  service.UpdatedAt,
+			Metadata:       metadata,
 		})
 	}
 	return deployments, nil
@@ -173,6 +179,10 @@ func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
 }
 
 func inferFrameworkFromRepo(repoURL string) string {
+	if repoURL == "" {
+		return ""
+	}
+
 	repoURL = strings.ToLower(repoURL)
 	frameworks := map[string]string{
 		"react":   "react",
