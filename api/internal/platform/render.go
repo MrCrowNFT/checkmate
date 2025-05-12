@@ -28,32 +28,34 @@ func NewRenderClient(apiKey string) *RenderClient {
 }
 
 // render returns an array of this
-type RenderServiceResponse struct {
-	Service struct {
-		ID           string    `json:"id"`
-		Name         string    `json:"name"`
-		Type         string    `json:"type"`
-		Branch       string    `json:"branch"`
-		Suspended    string    `json:"suspended"`
-		Status       string    `json:"status"`
-		CreatedAt    time.Time `json:"createdAt"`
-		UpdatedAt    time.Time `json:"updatedAt"`
-		AutoDeploy   string    `json:"autoDeploy"`
-		Repo         string    `json:"repo"`
-		DashboardURL string    `json:"dashboardUrl"`
+type RenderService struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Type         string    `json:"type"`
+	Branch       string    `json:"branch"`
+	Suspended    string    `json:"suspended"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	AutoDeploy   string    `json:"autoDeploy"`
+	Repo         string    `json:"repo"`
+	DashboardURL string    `json:"dashboardUrl"`
 
-		ServiceDetails struct {
-			BuildCommand string `json:"buildCommand"`
-			PublishPath  string `json:"publishPath"`
-			URL          string `json:"url"`
-			BuildPlan    string `json:"buildPlan"`
-			ParentServer *struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			} `json:"parentServer,omitempty"`
-		} `json:"serviceDetails"`
-	} `json:"service"`
-	Cursor string `json:"cursor,omitempty"`
+	ServiceDetails struct {
+		BuildCommand string `json:"buildCommand"`
+		PublishPath  string `json:"publishPath"`
+		URL          string `json:"url"`
+		BuildPlan    string `json:"buildPlan"`
+		ParentServer *struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"parentServer,omitempty"`
+	} `json:"serviceDetails"`
+}
+
+type RenderServiceResponse struct {
+	Service RenderService `json:"service"`
+	Cursor  string        `json:"cursor,omitempty"`
 }
 
 type RenderServicesResponse struct {
@@ -83,16 +85,16 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 	//decode response into renderServiceResponses array so that we can loop
 	//and append each one as a mode.deployment into new array
-	var renderServiceResponses []RenderServiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&renderServiceResponses); err != nil {
+	var serviceResponses RenderServicesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&serviceResponses); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	var deployments []model.Deployment
-	for _, response := range renderServiceResponses {
+	for _, response := range serviceResponses.Services {
 		service := response.Service
 		//determine status
-		status := determineDeploymentStatus(status := determineDeploymentStatus(response.Service))
+		status := determineDeploymentStatus(service)
 
 		metadata := map[string]interface{}{
 			"type":         service.Type,
@@ -128,19 +130,19 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 }
 
-func determineDeploymentStatus(service RenderServiceResponse.Service) model.DeploymentStatus {
-    switch strings.ToLower(service.Status) {
-    case "live", "up":
-        return model.DeploymentStatusLive
-    case "suspended":
-        return model.DeploymentStatusCanceled
-    case "deploying", "build":
-        return model.DeploymentStatusDeploying
-    case "failed", "error":
-        return model.DeploymentStatusFailed
-    default:
-        return model.DeploymentStatusUnknown
-    }
+func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
+	switch strings.ToLower(service.Status) {
+	case "live", "up":
+		return model.DeploymentStatusLive
+	case "suspended":
+		return model.DeploymentStatusCanceled
+	case "deploying", "build":
+		return model.DeploymentStatusDeploying
+	case "failed", "error":
+		return model.DeploymentStatusFailed
+	default:
+		return model.DeploymentStatusUnknown
+	}
 }
 
 func inferFrameworkFromRepo(repoURL string) string {
