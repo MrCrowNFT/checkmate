@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 )
-//todo this should return the credentials but without the apikey for common sense reasons
+
 func GetCredentials(w http.ResponseWriter, r *http.Request) {
 	// get user ID from context
 	userID, err := auth.GetUserFromRequest(r)
@@ -117,7 +117,7 @@ func DeleteCredential(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	
+
 	// get credential ID from query params
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
