@@ -69,7 +69,7 @@ func CreateCredentials(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(safeCred)//*note the cred has the api key, is it okay to send it back like this?
+	json.NewEncoder(w).Encode(safeCred)
 }
 
 

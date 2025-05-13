@@ -60,8 +60,8 @@ func main() {
 	mux.HandleFunc("/deployments", auth.Authenticate(handler.GetDeployments))
 	mux.HandleFunc("/credentials", auth.Authenticate(handler.GetCredentials))
 	mux.HandleFunc("/credentials/new", auth.Authenticate(handler.CreateCredentials))
-	mux.HandleFunc("/credentials/update", auth.Authenticate(handler.UpdateCredential))
-	mux.HandleFunc("/credentials/delete", auth.Authenticate(handler.DeleteCredential))
+	mux.HandleFunc("/credentials/update/:id", auth.Authenticate(handler.UpdateCredential))
+	mux.HandleFunc("/credentials/delete/:id", auth.Authenticate(handler.DeleteCredential))
 
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{
