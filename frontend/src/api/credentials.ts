@@ -1,7 +1,4 @@
-import type {
-  platformCredentialInput,
-  safeCredential,
-} from "../types/credentials";
+import type { platformCredentialInput, safeCredential } from "../types";
 import api from "./api";
 
 //*note i will use this on the zustand store so try catch block will be applied there

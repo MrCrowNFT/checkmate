@@ -1,13 +1,11 @@
-import type { safeCredential } from "./credentials";
-
-export type DeploymentStatus =
+export type deploymentStatus =
   | "live"
   | "deploying"
   | "canceled"
   | "failed"
   | "unknown";
 
-export interface Deployment {
+export interface deployment {
   id: string;
   platformCredentialID: number;
   name: string;
