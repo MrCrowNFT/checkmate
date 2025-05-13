@@ -13,67 +13,33 @@ import (
 
 const renderAPIBaseURL = "https://api.render.com/v1"
 
-type RenderClient struct {
-	apiKey string
-	client *http.Client
+// implements operations for the Render platform
+type RenderProvider struct {
+	client *model.RenderClient
 }
 
-func NewRenderClient(apiKey string) *RenderClient {
-	return &RenderClient{
-		apiKey: apiKey,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
+func NewRenderProvider(apiKey string) *RenderProvider {
+	return &RenderProvider{
+		client: &model.RenderClient{
+			ApiKey: apiKey,
+			Client: &http.Client{
+				Timeout: 30 * time.Second,
+			},
 		},
 	}
 }
 
-// render returns an array of this
-type RenderService struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Type         string    `json:"type"`
-	Branch       string    `json:"branch"`
-	Suspended    string    `json:"suspended"`
-	Status       string    `json:"status"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	AutoDeploy   string    `json:"autoDeploy"`
-	Repo         string    `json:"repo"`
-	DashboardURL string    `json:"dashboardUrl"`
-
-	ServiceDetails struct {
-		BuildCommand string `json:"buildCommand"`
-		PublishPath  string `json:"publishPath"`
-		URL          string `json:"url"`
-		BuildPlan    string `json:"buildPlan"`
-		ParentServer *struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"parentServer,omitempty"`
-	} `json:"serviceDetails"`
-}
-
-type RenderServiceResponse struct {
-	Service RenderService `json:"service"`
-	Cursor  string        `json:"cursor,omitempty"`
-}
-
-type RenderServicesResponse struct {
-	Services []RenderServiceResponse `json:"services"`
-	Cursor   string                  `json:"cursor,omitempty"`
-}
-
 // verify valid api key
-func (c *RenderClient) VerifyCredentials(ctx context.Context) error {
+func (p *RenderProvider) VerifyCredentials(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Authorization", "Bearer "+p.client.ApiKey)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := c.client.Do(req)
+	resp, err := p.client.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
@@ -89,16 +55,16 @@ func (c *RenderClient) VerifyCredentials(ctx context.Context) error {
 	return nil
 }
 
-func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, error) {
+func (p *RenderProvider) GetServices(ctx context.Context) ([]model.Deployment, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Authorization", "Bearer "+p.client.ApiKey)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := c.client.Do(req)
+	resp, err := p.client.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
@@ -111,7 +77,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 
 	//decode response into renderServiceResponses array so that we can loop
 	//and append each one as a mode.deployment into new array
-	var serviceResponses []RenderServiceResponse
+	var serviceResponses []model.RenderServiceResponse
 	if err := json.NewDecoder(resp.Body).Decode(&serviceResponses); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
@@ -120,7 +86,7 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 	for _, response := range serviceResponses {
 		service := response.Service
 		//determine status
-		status := determineDeploymentStatus(service)
+		status := p.determineDeploymentStatus(service)
 
 		metadata := map[string]interface{}{
 			"type":         service.Type,
@@ -154,17 +120,16 @@ func (c *RenderClient) GetServices(ctx context.Context) ([]model.Deployment, err
 			LastDeployedAt: lastDeployed,
 			Branch:         service.Branch,
 			ServiceType:    service.Type,
-			Framework:      inferFrameworkFromRepo(service.Repo),
+			Framework:      p.inferFrameworkFromRepo(service.Repo),
 			LastUpdatedAt:  service.UpdatedAt,
 			Metadata:       metadata,
 		})
 	}
 	return deployments, nil
-
 }
 
 // todo there are more status in render, need to check them out
-func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
+func (p *RenderProvider) determineDeploymentStatus(service model.RenderService) model.DeploymentStatus {
 	switch strings.ToLower(service.Status) {
 	case "live", "up":
 		return model.DeploymentStatusLive
@@ -179,7 +144,7 @@ func determineDeploymentStatus(service RenderService) model.DeploymentStatus {
 	}
 }
 
-func inferFrameworkFromRepo(repoURL string) string {
+func (p *RenderProvider) inferFrameworkFromRepo(repoURL string) string {
 	if repoURL == "" {
 		return ""
 	}
