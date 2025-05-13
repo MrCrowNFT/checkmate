@@ -1,3 +1,5 @@
+import type { safeCredential } from "./credentials";
+
 export type DeploymentStatus =
   | "live"
   | "deploying"
@@ -5,15 +7,9 @@ export type DeploymentStatus =
   | "failed"
   | "unknown";
 
-export interface PlatformCredential {
-  id: string;
-  name?: string;
-  type?: string;
-}
-
 export interface Deployment {
   id: string;
-  platformCredential: PlatformCredential | null;
+  platformCredentialID: number;
   name: string;
   status: DeploymentStatus;
   url: string;

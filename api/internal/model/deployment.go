@@ -14,9 +14,10 @@ const (
 	DeploymentStatusUnknown   DeploymentStatus = "unknown"
 )
 
+//todo this is like super wrong 
 type Deployment struct {
 	ID                 string                 `json:"id"`
-	PlatformCredential *PlatformCredential    `json:"platformCredential"`
+	PlatformCredentialID int    `json:"platformCredentialID"`
 	Name               string                 `json:"name"`
 	Status             DeploymentStatus       `json:"status"`
 	URL                string                 `json:"url"`

@@ -2,8 +2,8 @@ package service
 
 import (
 	"checkmate/api/internal/model"
-	"checkmate/api/internal/storage"
 	"checkmate/api/internal/platform"
+	"checkmate/api/internal/storage"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -80,7 +80,7 @@ func StoreCachedDeployment(ctx context.Context, credentialID int, deployments []
 	return nil
 }
 
-//get cached deployments for a platform
+// get cached deployments for a platform
 func GetCachedDeployments(ctx context.Context, credentialID int) ([]model.Deployment, time.Time, error) {
 	query := `
 		SELECT 
@@ -205,29 +205,28 @@ func fetchDeploymentsFromPlatform(ctx context.Context, cred *model.PlatformCrede
 			return nil, fmt.Errorf("failed to fetch Render deployments: %w", err)
 		}
 
-		// Set PlatformCredential for each deployment
+		// Set PlatformCredentialID for each deployment
 		for i := range deployments {
 			// create copy to avoid modifying the original
-			credCopy := *cred
-			deployments[i].PlatformCredential = &credCopy
+			deployments[i].PlatformCredentialID = cred.ID
 		}
-		
+
 		return deployments, nil
-		
+
 	case "vercel":
 		// TODO: Implement Vercel client
 		return nil, fmt.Errorf("vercel platform not implemented")
-		
+
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", cred.Platform)
 	}
 }
 
 // gets deployments for all user credentials this is the main function here
-//workflow-> first get all platform credentials associated to the user id -> check if cache is fresh or stale
-//-> if is fresh it returns the cache
-//-> if not, fetch the data from the paltform ->case render/case vercel/etc-> update the cache and return it
-//-> append each deployment to the array and return it
+// workflow-> first get all platform credentials associated to the user id -> check if cache is fresh or stale
+// -> if is fresh it returns the cache
+// -> if not, fetch the data from the paltform ->case render/case vercel/etc-> update the cache and return it
+// -> append each deployment to the array and return it
 func GetAllUserDeployments(ctx context.Context, userID string) ([]model.Deployment, error) {
 	// get all credentials for the user
 	creds, err := GetPlatformCredentials(ctx, userID)
@@ -237,7 +236,7 @@ func GetAllUserDeployments(ctx context.Context, userID string) ([]model.Deployme
 
 	// Collect all deployments from all credentials
 	var allDeployments []model.Deployment
-	
+
 	for _, cred := range creds {
 		deployments, err := GetFreshOrUpdateCache(ctx, &cred)
 		if err != nil {
@@ -245,7 +244,7 @@ func GetAllUserDeployments(ctx context.Context, userID string) ([]model.Deployme
 			fmt.Printf("Error fetching deployments for credential %d: %v\n", cred.ID, err)
 			continue
 		}
-		
+
 		allDeployments = append(allDeployments, deployments...)
 	}
 
