@@ -57,6 +57,12 @@ func main() {
 	//endpoints
 	mux.HandleFunc("/", auth.Authenticate(handler.GetCurrentUser))
 
+	mux.HandleFunc("/deployments", auth.Authenticate(handler.GetDeployments))
+	mux.HandleFunc("/credentials", auth.Authenticate(handler.GetCredentials))
+	mux.HandleFunc("/credentials/new", auth.Authenticate(handler.CreateCredentials))
+	mux.HandleFunc("/credentials/update", auth.Authenticate(handler.UpdateCredential))
+	mux.HandleFunc("/credentials/delete", auth.Authenticate(handler.DeleteCredential))
+
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:1420", "http://localhost:5173"}, // Tauri default dev port + current frontend
