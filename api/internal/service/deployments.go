@@ -199,7 +199,7 @@ func GetFreshOrUpdateCache(ctx context.Context, cred *model.PlatformCredential) 
 func fetchDeploymentsFromPlatform(ctx context.Context, cred *model.PlatformCredential) ([]model.Deployment, error) {
 	switch cred.Platform {
 	case "render":
-		client := platform.NewRenderClient(cred.APIKey)
+		client := platform.NewRenderProvider(cred.APIKey)
 		deployments, err := client.GetServices(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch Render deployments: %w", err)

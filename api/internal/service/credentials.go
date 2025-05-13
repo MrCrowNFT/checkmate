@@ -161,7 +161,7 @@ func DeletePlatformCredential(ctx context.Context, id int, userID string) error 
 func ValidateCredential(ctx context.Context, platformName string, apiKey string) error {
 	switch platformName {
 	case "render":
-		client := platform.NewRenderClient(apiKey)
+		client := platform.NewRenderProvider(apiKey)
 		err := client.VerifyCredentials(ctx)
 		return err
 	case "vercel":
