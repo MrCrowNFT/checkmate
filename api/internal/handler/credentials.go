@@ -78,20 +78,20 @@ func UpdateCredential(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// Parse request body
+	// parse request body
 	var input model.PlatformCredentialInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	
-	// Validate credential with platform before updating
+	// validate credential before updating
 	if err := service.ValidateCredential(r.Context(), input.Platform, input.APIKey); err != nil {
 		http.Error(w, "Invalid credential: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	
-	// Update credential
+	// update credential
 	if err := service.UpdatePlatformCredential(r.Context(), id, userID, &input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -99,4 +99,31 @@ func UpdateCredential(w http.ResponseWriter, r *http.Request) {
 	
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"message":"Credential updated successfully"}`))
+}
+
+func DeleteCredential(w http.ResponseWriter, r *http.Request) {
+	// get user ID from context
+	userID := r.Context().Value("userId").(string)
+	
+	// get credential ID from query params
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Missing credential ID", http.StatusBadRequest)
+		return
+	}
+	
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid credential ID", http.StatusBadRequest)
+		return
+	}
+	
+	// delete credential
+	if err := service.DeletePlatformCredential(r.Context(), id, userID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"Credential deleted successfully"}`))
 }
