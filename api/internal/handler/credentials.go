@@ -3,6 +3,7 @@ package handler
 import (
 	"checkmate/api/internal/model"
 	"checkmate/api/internal/service"
+	"checkmate/api/internal/auth"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -10,7 +11,11 @@ import (
 //todo this should return the credentials but without the apikey for common sense reasons
 func GetCredentials(w http.ResponseWriter, r *http.Request) {
 	// get user ID from context
-	userID := r.Context().Value("userId").(string)
+	userID, err := auth.GetUserFromRequest(r)
+	if err != nil || userID == ""{
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	
 	// get all credentials for user
 	credentials, err := service.GetPlatformCredentials(r.Context(), userID)
@@ -28,10 +33,10 @@ func GetCredentials(w http.ResponseWriter, r *http.Request) {
 
 
 func CreateCredentials(w http.ResponseWriter, r *http.Request) {
-	//todo check if this user id value is right
-	userID := r.Context().Value("userId").(string)
-	if userID == "" {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	// get user ID from context
+	userID, err := auth.GetUserFromRequest(r)
+	if err != nil || userID == ""{
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -63,7 +68,11 @@ func CreateCredentials(w http.ResponseWriter, r *http.Request) {
 
 func UpdateCredential(w http.ResponseWriter, r *http.Request) {
 	// get user ID from context
-	userID := r.Context().Value("userId").(string)
+	userID, err := auth.GetUserFromRequest(r)
+	if err != nil || userID == ""{
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	
 	// get credential ID from query params
 	idStr := r.URL.Query().Get("id")
@@ -103,7 +112,11 @@ func UpdateCredential(w http.ResponseWriter, r *http.Request) {
 
 func DeleteCredential(w http.ResponseWriter, r *http.Request) {
 	// get user ID from context
-	userID := r.Context().Value("userId").(string)
+	userID, err := auth.GetUserFromRequest(r)
+	if err != nil || userID == ""{
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	
 	// get credential ID from query params
 	idStr := r.URL.Query().Get("id")

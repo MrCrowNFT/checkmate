@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"checkmate/api/internal/auth"
 	"checkmate/api/internal/service"
 	"encoding/json"
 	"net/http"
@@ -8,10 +9,9 @@ import (
 
 func GetDeployments(w http.ResponseWriter, r *http.Request) {
 	//get the user id from context
-	//todo check if this user id value is right
-	userID := r.Context().Value("userId").(string)
-	if userID == "" {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	userID, err := auth.GetUserFromRequest(r)
+	if err != nil || userID == ""{
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 

@@ -22,14 +22,14 @@ func InitFirebase(creadentialsPath string) error {
 
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		return fmt.Errorf("Error initializing firebase app: %v", err)
+		return fmt.Errorf("error initializing firebase app: %v", err)
 	}
 
 	firebaseApp = app
 
 	client, err := app.Auth(context.Background())
 	if err != nil {
-		return fmt.Errorf("Error getting auth client: %v", err)
+		return fmt.Errorf("error getting auth client: %v", err)
 	}
 	authClient = client
 	return nil
