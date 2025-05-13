@@ -187,7 +187,7 @@ func GetFreshOrUpdateCache(ctx context.Context, cred *model.PlatformCredential) 
 	}
 
 	// update cache with fresh data
-	err = StoreCachedDeployments(ctx, cred.ID, deployments)
+	err = StoreCachedDeployment(ctx, cred.ID, deployments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update cache: %w", err)
 	}
