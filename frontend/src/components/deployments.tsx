@@ -8,7 +8,7 @@ const Deployments = () => {
   const [error, setError] = useState("");
   const { currentUser } = useAuth();
 
-  //todo Fix the api call to get user
+
   //todo Add typing of user
 
   useEffect(() => {
