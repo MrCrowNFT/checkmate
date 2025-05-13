@@ -4,6 +4,7 @@ import (
 	"checkmate/api/internal/model"
 	"checkmate/api/internal/service"
 	"checkmate/api/internal/auth"
+	"checkmate/api/internal/utils"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -23,11 +24,14 @@ func GetCredentials(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// convert to safe credentials (without API keys)
+	safeCredentials := utils.ConvertToSafeCredentials(credentials)
 	
 	// prepare and send response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"credentials": credentials,
+		"credentials": safeCredentials,
 	})
 }
 
@@ -60,9 +64,12 @@ func CreateCredentials(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// convert to safe credential (without API key)
+	safeCred := utils.ConvertToSafeCredential(cred)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(cred)//*note the cred has the api key, is it okay to send it back like this?
+	json.NewEncoder(w).Encode(safeCred)//*note the cred has the api key, is it okay to send it back like this?
 }
 
 
