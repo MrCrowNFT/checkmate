@@ -78,3 +78,61 @@ func StoreCachedDeployment(ctx context.Context, credentialID int, deployments []
 
 	return nil
 }
+
+func GetCachedDeployments(ctx context.Context, credentialID int) ([]model.Deployment, time.Time, error) {
+	query := `
+		SELECT 
+			id, name, status, url, last_deployed_at, branch, 
+			service_type, framework, last_updated_at, metadata
+		FROM deployment_cache
+		WHERE platform_credential_id = ?
+	`
+
+	rows, err := storage.DB.QueryContext(ctx, query, credentialID)
+	if err != nil {
+		return nil, time.Time{}, fmt.Errorf("failed to query cached deployments: %w", err)
+	}
+	defer rows.Close()
+
+	var deployments []model.Deployment
+	var lastUpdatedAt time.Time
+
+	for rows.Next() {
+		var dep model.Deployment
+		var status string
+		var metadataJSON string
+		var lastDeployedAt sql.NullTime
+
+		err := rows.Scan(
+			&dep.ID, &dep.Name, &status, &dep.URL, &lastDeployedAt, &dep.Branch,
+			&dep.ServiceType, &dep.Framework, &lastUpdatedAt, &metadataJSON,
+		)
+		if err != nil {
+			return nil, time.Time{}, fmt.Errorf("failed to scan deployment row: %w", err)
+		}
+
+		// Convert status string to DeploymentStatus
+		dep.Status = model.DeploymentStatus(status)
+
+		// Convert NullTime to *time.Time
+		if lastDeployedAt.Valid {
+			dep.LastDeployedAt = &lastDeployedAt.Time
+		}
+
+		// Parse metadata JSON
+		if metadataJSON != "" {
+			var metadata map[string]interface{}
+			if err := json.Unmarshal([]byte(metadataJSON), &metadata); err != nil {
+				return nil, time.Time{}, fmt.Errorf("failed to unmarshal metadata: %w", err)
+			}
+			dep.Metadata = metadata
+		} else {
+			dep.Metadata = make(map[string]interface{})
+		}
+
+		dep.LastUpdatedAt = lastUpdatedAt
+		deployments = append(deployments, dep)
+	}
+
+	return deployments, lastUpdatedAt, nil
+}
