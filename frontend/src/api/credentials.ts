@@ -7,7 +7,7 @@ import api from "./api";
 //*note i will use this on the zustand store so try catch block will be applied there
 export const getCredentials = async (): Promise<safeCredential[]> => {
   const res = await api.get("/credentials");
-  return res.data;
+  return res.data.credentials;
 };
 
 export const newCredential = async (
@@ -22,11 +22,11 @@ export const updateCredential = async (
   id: string,
   updateCred: platformCredentialInput
 ) => {
-  const res = await api.put(`/credentials/update/${id}`, updateCred);
+  const res = await api.put(`/credentials/update?id=${id}`, updateCred);
   return res.data;
 };
 
 export const deleteCredential = async (id: string) => {
-  const res = await api.delete(`/credentials/delete/${id}`);
+  const res = await api.delete(`/credentials/delete?id=${id}`);
   return res.data;
 };
