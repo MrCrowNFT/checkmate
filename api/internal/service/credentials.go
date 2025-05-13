@@ -12,7 +12,8 @@ import (
 
 //Credentials CRUD operations
 
-// get all platform credentials -> for when loading the dashoard
+// get all platform credentials -> for getting all the deployments -> when loading dashboard
+// should only be used internally
 func GetPlatformCredentials(ctx context.Context, userID string) ([]model.PlatformCredential, error) {
 	query := `SELECT id, user_id, platform, name, api_key, created_at 
         FROM platform_credentials
@@ -46,7 +47,7 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 
 }
 
-// not sure if really need this one just yet
+// not sure if really need this one just yet -> yeah, i really don´t need this one
 func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*model.PlatformCredential, error) {
 	query := `SELECT id, user_id, platform, name, api_key, created_at 
               FROM platform_credentials
@@ -71,7 +72,8 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 // create new plstform credentials
 func CreatePlatformCredential(ctx context.Context, userID string, input *model.PlatformCredentialInput) (*model.PlatformCredential, error) {
 	//validate credentials before creating cred
-	err := validateCredential(ctx, input.Platform, input.APIKey)
+	//todo considere deleting this one, we already validate on the handler
+	err := ValidateCredential(ctx, input.Platform, input.APIKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid credentials: %w", err)
 	}
@@ -156,7 +158,7 @@ func DeletePlatformCredential(ctx context.Context, id int, userID string) error 
 	return nil
 }
 
-func validateCredential(ctx context.Context, platformName string, apiKey string) error {
+func ValidateCredential(ctx context.Context, platformName string, apiKey string) error {
 	switch platformName {
 	case "render":
 		client := platform.NewRenderClient(apiKey)
