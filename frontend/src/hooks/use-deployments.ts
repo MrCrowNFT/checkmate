@@ -70,22 +70,42 @@ export const useDeployments = create<DeploymentsList>()(
 
       newCredentials: async (credential) => {
         set({ isLoading: true, error: null });
+
+        const tempId = Math.floor(Math.random() * -1000) - 1; // negative ID to avoid conflicts
+        const optimisticCredential: safeCredential = {
+          id: tempId,
+          user_id: "temp-user", // this will be replaced by the actual response
+          platform: credential.platform,
+          name: credential.name,
+          created_at: new Date(),
+        };
+
+        // optimistic update
+        set((state) => ({
+          credentials: [...state.credentials, optimisticCredential],
+        }));
+
         try {
           const response = await newCredential(credential);
           set((state) => ({
-            credentials: [...state.credentials, response],
+            credentials: state.credentials
+              .filter((cred) => cred.id !== tempId)
+              .concat([response]),
             isLoading: false,
           }));
 
           //refetch deployments after adding new creds
           get().getDeployments();
-
           return response;
         } catch (error) {
-          const errorMessage = axios.isAxiosError(error)
-            ? error.response?.data?.message
-            : "Error creating credentials";
-          set({ isLoading: false, error: errorMessage });
+          //rollback if error
+          set((state) => ({
+            credentials: state.credentials.filter((cred) => cred.id !== tempId),
+            isLoading: false,
+            error: axios.isAxiosError(error)
+              ? error.response?.data?.message
+              : "Error creating credentials",
+          }));
           throw error;
         }
       },
