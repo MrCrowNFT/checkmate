@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import api from "../api/api";
+import type { User } from "../types";
 
 const Deployments = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const { currentUser } = useAuth();
-
-
-  //todo Add typing of user
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -24,7 +22,7 @@ const Deployments = () => {
         const response = await api.get("/");
         console.log("API response received:", response.data);
         setUser(response.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching user profile:", err);
         if (err.response) {
           console.error("Error response data:", err.response.data);
