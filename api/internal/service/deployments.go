@@ -36,7 +36,8 @@ func StoreCachedDeployment(ctx context.Context, credentialID int, deployments []
 	}
 
 	//insert new deployments into cache
-	now := time.Now()
+	now := time.Now()//we need this to insert in the last_updated_at
+
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO deployment_cache (
 			id, platform_credential_id, name, status, url, 
@@ -141,6 +142,7 @@ func GetCachedDeployments(ctx context.Context, credentialID int) ([]model.Deploy
 
 // checks if cache exists for a credential
 func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error) {
+	//we get the oldest last_updated_at deployment that has the platform id
 	query := `
 		SELECT COUNT(*), MAX(last_updated_at) 
 		FROM deployment_cache 
@@ -237,6 +239,9 @@ func GetAllUserDeployments(ctx context.Context, userID string) ([]model.Deployme
 	// Collect all deployments from all credentials
 	var allDeployments []model.Deployment
 
+	
+	//all deployment assosiated to one credential should have 
+	//the same platform_credential_id
 	for _, cred := range creds {
 		deployments, err := GetFreshOrUpdateCache(ctx, &cred)
 		if err != nil {

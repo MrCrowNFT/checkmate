@@ -16,14 +16,14 @@ export const newCredential = async (
 
 //i will just make an optimistic update on zustand
 export const updateCredential = async (
-  id: string,
+  id: number,
   updateCred: platformCredentialInput
 ) => {
   const res = await api.put(`/credentials/update?id=${id}`, updateCred);
   return res.data;
 };
 
-export const deleteCredential = async (id: string) => {
+export const deleteCredential = async (id: number) => {
   const res = await api.delete(`/credentials/delete?id=${id}`);
   return res.data;
 };
