@@ -8,40 +8,40 @@ import {
 } from "lucide-react";
 import type { Deployment, DeploymentStatus } from "../types";
 
-// Helper function to format dates
+// helper function to format dates
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "Never";
   const date = new Date(dateString);
   return date.toLocaleString();
 };
 
-// Status Badge Component
+// status Badge Component
 const StatusBadge = ({ status }: { status: DeploymentStatus }) => {
   const getStatusStyles = () => {
     switch (status) {
       case "live":
-        return "bg-green-100 text-green-800 border-green-300";
+        return "bg-green-100 text-green-500 dark:bg-opacity-10 dark:text-green-300";
       case "deploying":
-        return "bg-blue-100 text-blue-800 border-blue-300";
+        return "bg-blue-100 text-blue-600 dark:bg-opacity-10 dark:text-blue-300";
       case "canceled":
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-gray-100 text-gray-600 dark:bg-opacity-10 dark:text-gray-400";
       case "failed":
-        return "bg-red-100 text-red-800 border-red-300";
+        return "bg-red-100 text-red-500 dark:bg-opacity-10 dark:text-red-300";
       default:
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return "bg-yellow-100 text-yellow-600 dark:bg-opacity-10 dark:text-yellow-300";
     }
   };
 
   return (
     <span
-      className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusStyles()}`}
+      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusStyles()}`}
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
 };
 
-// Deployment Card Component
+// deployment Card Component
 const DeploymentCard = ({
   deployment,
   onClick,
@@ -51,39 +51,41 @@ const DeploymentCard = ({
 }) => {
   return (
     <div
-      className="border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
+      className="border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-900 shadow-sm p-4 hover:shadow transition-shadow duration-200 cursor-pointer"
       onClick={onClick}
     >
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-medium text-lg truncate">{deployment.name}</h3>
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="font-medium text-base text-gray-900 dark:text-white truncate">
+          {deployment.name}
+        </h3>
         <StatusBadge status={deployment.status} />
       </div>
 
-      <div className="space-y-2 text-sm text-gray-600">
+      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
         <div className="flex items-center gap-2">
-          <Server size={16} />
+          <Server size={16} className="text-gray-500 dark:text-gray-400" />
           <span>{deployment.serviceType}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Code size={16} />
+          <Code size={16} className="text-gray-500 dark:text-gray-400" />
           <span>{deployment.framework}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <GitBranch size={16} />
+          <GitBranch size={16} className="text-gray-500 dark:text-gray-400" />
           <span>{deployment.branch}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Clock size={16} />
+          <Clock size={16} className="text-gray-500 dark:text-gray-400" />
           <span>Last updated: {formatDate(deployment.lastUpdatedAt)}</span>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t flex justify-between items-center">
+      <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <button
-          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1 text-sm font-medium"
           onClick={(e) => {
             e.stopPropagation();
             window.open(deployment.url, "_blank");
@@ -94,7 +96,7 @@ const DeploymentCard = ({
         </button>
 
         <button
-          className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-sm"
+          className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 flex items-center gap-1 text-sm font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onClick();
