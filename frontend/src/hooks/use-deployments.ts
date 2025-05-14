@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
-  deployment,
+  Deployment,
   platformCredentialInput,
   safeCredential,
 } from "../types";
@@ -16,7 +16,7 @@ import axios from "axios";
 
 type DeploymentsList = {
   credentials: safeCredential[];
-  deployments: deployment[];
+  deployments: Deployment[];
   isLoading: boolean;
   error: string | null;
 
@@ -29,7 +29,7 @@ type DeploymentsList = {
   deleteCredentials: (id: number) => void;
 
   //deployments
-  getDeployments: () => Promise<deployment[]>;
+  getDeployments: () => Promise<Deployment[]>;
 };
 
 //* naming is not great, this is for deployment and credentials

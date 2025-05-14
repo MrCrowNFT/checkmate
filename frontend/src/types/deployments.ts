@@ -1,15 +1,15 @@
-export type deploymentStatus =
+export type DeploymentStatus =
   | "live"
   | "deploying"
   | "canceled"
   | "failed"
   | "unknown";
 
-export interface deployment {
+export interface Deployment {
   id: string;
   platformCredentialID: number;
   name: string;
-  status: deploymentStatus;
+  status: DeploymentStatus;
   url: string;
   lastDeployedAt: string | null;
   branch: string;
