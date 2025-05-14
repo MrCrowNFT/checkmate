@@ -6,7 +6,7 @@ import {
   Code,
   GitBranch,
 } from "lucide-react";
-import type { Deployment } from "../types";
+import type { Deployment, DeploymentStatus } from "../types";
 
 // Helper function to format dates
 const formatDate = (dateString: string | null) => {
