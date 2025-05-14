@@ -1,3 +1,8 @@
+import { Clock, ExternalLink, Server, Code, GitBranch } from "lucide-react";
+import StatusBadge from "./status-badge";
+import type { Deployment } from "../types";
+import { formatDate } from "../helpers";
+
 const DeploymentDetails = ({
   deployment,
   onBack,
@@ -118,3 +123,5 @@ const DeploymentDetails = ({
     </div>
   );
 };
+
+export default DeploymentDetails

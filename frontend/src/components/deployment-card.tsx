@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { Deployment } from "../types";
 import StatusBadge from "./status-badge";
+import { formatDate } from "../helpers";
 
 //todo on click should redirect to details with the id of the project
 // deployment Card Component
