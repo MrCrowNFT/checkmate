@@ -164,6 +164,7 @@ export const useDeployments = create<DeploymentsList>()(
         }
       },
       startPolling: () => {
+        //clear existing polling first
         if (get().pollingInterval !== null) {
           window.clearInterval(get().pollingInterval as number);
         }
