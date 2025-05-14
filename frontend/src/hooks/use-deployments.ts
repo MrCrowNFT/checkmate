@@ -40,7 +40,7 @@ export const useDeployments = create<DeploymentsList>()(
   persist(
     (set, get) => ({
       credentials: [],
-      deployments: [],
+      deployments: [], 
       isLoading: false,
       error: null,
       pollingInterval: null,
@@ -172,16 +172,27 @@ export const useDeployments = create<DeploymentsList>()(
         set({ isLoading: true, error: null });
         try {
           const deployments = await fetchDeployments();
+          // Ensure deployments is always an array
+          const deploymentsArray = Array.isArray(deployments)
+            ? deployments
+            : [];
+          console.log("Fetched deployments:", deploymentsArray);
+
           set({
-            deployments,
+            deployments: deploymentsArray,
             isLoading: false,
           });
-          return deployments;
+          return deploymentsArray;
         } catch (error) {
           const errorMessage = axios.isAxiosError(error)
             ? error.response?.data?.message
             : "Error fetching deployments";
           set({ isLoading: false, error: errorMessage });
+          // On error, ensure deployments is still an array
+          set((state) => ({
+            ...state,
+            deployments: state.deployments || [],
+          }));
           throw error;
         }
       },
@@ -208,7 +219,7 @@ export const useDeployments = create<DeploymentsList>()(
       name: "deployments",
       partialize: (state) => ({
         credentials: state.credentials,
-        deployments: state.deployments,
+        deployments: state.deployments || [], 
         isLoading: state.isLoading,
         error: state.error,
       }),

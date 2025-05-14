@@ -92,6 +92,9 @@ const Deployments = () => {
   if (error)
     return <div className="p-8 text-center text-red-500">Error: {error}</div>;
 
+  // Add a console.log to debug deployments
+  console.log("Deployments data:", deployments, Array.isArray(deployments));
+
   return (
     <div className={`container mx-auto px-4 py-8 ${darkMode ? "dark" : ""}`}>
       <div className="flex justify-between items-center mb-8">
@@ -120,22 +123,30 @@ const Deployments = () => {
 
       {/* Deployments grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {deployments.map((deployment) => (
-          <DeploymentCard
-            key={deployment.id}
-            deployment={deployment}
-            onClick={() => {}}
-          />
-        ))}
+        {Array.isArray(deployments) ? (
+          deployments.map((deployment) => (
+            <DeploymentCard
+              key={deployment.id}
+              deployment={deployment}
+              onClick={() => {}}
+            />
+          ))
+        ) : (
+          <div className="text-red-500 col-span-3">
+            Error: Deployments data is not in the expected format.
+          </div>
+        )}
       </div>
 
       {/* Show message when no deployments */}
-      {!deploymentsLoading && deployments.length === 0 && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No deployments found. Add credentials to start deploying your
-          applications.
-        </div>
-      )}
+      {!deploymentsLoading &&
+        Array.isArray(deployments) &&
+        deployments.length === 0 && (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            No deployments found. Add credentials to start deploying your
+            applications.
+          </div>
+        )}
     </div>
   );
 };

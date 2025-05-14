@@ -62,8 +62,6 @@ const DarkModeToggle = () => {
         }}
       />
 
-      {/* Focus ring */}
-      <div className="absolute inset-0 rounded-full ring-0 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:outline-none" />
     </motion.button>
   );
 };
