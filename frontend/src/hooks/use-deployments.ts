@@ -146,6 +146,7 @@ export const useDeployments = create<DeploymentsList>()(
       },
 
       //deployments
+      //todo add a debounce to prevent spamming
       getDeployments: async () => {
         set({ isLoading: true, error: null });
         try {
