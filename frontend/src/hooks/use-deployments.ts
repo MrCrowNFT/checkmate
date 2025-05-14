@@ -164,6 +164,7 @@ export const useDeployments = create<DeploymentsList>()(
           throw error;
         }
       },
+      //todo probably want to prevent polling on server errors
       startPolling: () => {
         //clear existing polling first
         if (get().pollingInterval !== null) {
