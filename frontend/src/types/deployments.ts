@@ -9,7 +9,7 @@ export interface deployment {
   id: string;
   platformCredentialID: number;
   name: string;
-  status: DeploymentStatus;
+  status: deploymentStatus;
   url: string;
   lastDeployedAt: string | null;
   branch: string;
