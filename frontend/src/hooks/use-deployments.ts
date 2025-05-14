@@ -70,7 +70,7 @@ export const useDeployments = create<DeploymentsList>()(
 
       newCredentials: async (credential) => {
         set({ isLoading: true, error: null });
-
+        //temporary ID and timestamp for creating the safeCredential
         const tempId = Math.floor(Math.random() * -1000) - 1; // negative ID to avoid conflicts
         const optimisticCredential: safeCredential = {
           id: tempId,
@@ -86,6 +86,7 @@ export const useDeployments = create<DeploymentsList>()(
         }));
 
         try {
+          //api call
           const response = await newCredential(credential);
           set((state) => ({
             credentials: state.credentials
