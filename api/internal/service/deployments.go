@@ -194,31 +194,38 @@ func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error)
 
 	//we get the oldest last_updated_at deployment that has the platform id
 	query := `
-		SELECT COUNT(*), MAX(last_updated_at) 
-		FROM deployment_cache 
-		WHERE platform_credential_id = ?
-	`
+        SELECT COUNT(*), MAX(last_updated_at) 
+        FROM deployment_cache 
+        WHERE platform_credential_id = ?
+    `
 
 	var count int
-	var lastUpdated sql.NullTime
+	var lastUpdatedStr sql.NullString // Change to NullString instead of NullTime
 
-	err := storage.DB.QueryRowContext(ctx, query, credentialID).Scan(&count, &lastUpdated)
+	err := storage.DB.QueryRowContext(ctx, query, credentialID).Scan(&count, &lastUpdatedStr)
 	if err != nil {
 		logger.WithError(err).Error("Failed to check cache existence")
 		return false, time.Time{}, fmt.Errorf("failed to check cache existence: %w", err)
 	}
 
 	// if no rows or null last_updated_at, cache doesn't exist
-	if count == 0 || !lastUpdated.Valid {
+	if count == 0 || !lastUpdatedStr.Valid {
 		logger.Debug("Cache does not exist")
 		return false, time.Time{}, nil
 	}
 
+	// Parse the string into a time.Time
+	lastUpdated, err := time.Parse(time.RFC3339, lastUpdatedStr.String)
+	if err != nil {
+		logger.WithError(err).Error("Failed to parse last_updated_at timestamp")
+		return false, time.Time{}, fmt.Errorf("failed to parse timestamp: %w", err)
+	}
+
 	logger.WithFields(log.Fields{
 		"cache_exists":    true,
-		"last_updated_at": lastUpdated.Time,
+		"last_updated_at": lastUpdated,
 	}).Debug("Cache check complete")
-	return true, lastUpdated.Time, nil
+	return true, lastUpdated, nil
 }
 
 // gets fresh deployments from cache or updates cache if stale
