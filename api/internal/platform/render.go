@@ -31,7 +31,7 @@ func NewRenderProvider(apiKey string) *RenderProvider {
 
 // verify valid api key
 func (p *RenderProvider) VerifyCredentials(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"/services", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -56,7 +56,7 @@ func (p *RenderProvider) VerifyCredentials(ctx context.Context) error {
 }
 
 func (p *RenderProvider) GetServices(ctx context.Context) ([]model.Deployment, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"services", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", renderAPIBaseURL+"/services", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
