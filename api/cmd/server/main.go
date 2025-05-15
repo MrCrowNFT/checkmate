@@ -18,56 +18,75 @@ import (
 )
 
 func main() {
-	//init logger
+	// init logger
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	if os.Getenv("ENV") == "production" {
 		log.SetLevel(log.InfoLevel)
 	} else {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	//debugging the working directory
+	logger := log.WithFields(log.Fields{
+		"func": "main",
+	})
+
+	// create package-level context key for request ID
+	utils.InitRequestIDKey()
+
+	// Debugging the working directory
 	currentDir, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Failed to get current directory: %v", err)
+		logger.WithError(err).Fatal("Failed to get current directory")
 	}
-	log.Printf("Running from directory: %s", currentDir)
+	logger.WithField("directory", currentDir).Debug("Running from directory")
 
+	// init database
 	storage.InitDb()
+	logger.Debug("Database initialized successfully")
 
-	//get enviroment variables
+	// get environment variables
 	err = godotenv.Load("./.env")
 	if err != nil {
-		//not necesary fail, since .env may not exists on production
-		log.Printf("Warning: .env file not found: %v", err)
+		// Not necessary fail, since .env may not exist in production
+		logger.WithError(err).Warn("Warning: .env file not found")
+	} else {
+		logger.Debug("Environment variables loaded successfully")
 	}
 
-	//get firebase credentials path to initialize auth
+	// get Firebase credentials path to init auth
 	firebaseCredPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
 	if firebaseCredPath == "" {
 		firebaseCredPath = "../../internal/config/firebase-credentials.json" // default
-		log.Printf("Using default Firebase credentials path: %s", firebaseCredPath)
+		logger.WithField("path", firebaseCredPath).Debug("Using default Firebase credentials path")
 	}
 
 	err = auth.InitFirebase(firebaseCredPath)
 	if err != nil {
-		log.Fatalf("Failed to initialize Firebase: %v", err)
+		logger.WithError(err).Fatal("Failed to initialize Firebase")
 	}
+	logger.Debug("Firebase authentication initialized successfully")
 
-	//initialize encryption for creating and getting platform credentials
+	// Initialize encryption for platform credentials
 	if err := utils.InitEncryption(); err != nil {
-		log.Fatalf("Failed to initialize encryption: %v", err)
+		logger.WithError(err).Fatal("Failed to initialize encryption")
 	}
+	logger.Debug("Encryption initialized successfully")
 
 	mux := http.NewServeMux()
 
-	//endpoints
-	mux.HandleFunc("/", auth.Authenticate(handler.GetCurrentUser))
+	// endpoints
+	mux.HandleFunc("/", auth.AuthenticateWithRequestID(handler.GetCurrentUser))
 
-	mux.HandleFunc("/deployments", auth.Authenticate(handler.GetDeployments))
-	mux.HandleFunc("/credentials", auth.Authenticate(handler.GetCredentials))
-	mux.HandleFunc("/credentials/new", auth.Authenticate(handler.CreateCredentials))
-	mux.HandleFunc("/credentials/update/:id", auth.Authenticate(handler.UpdateCredential))
-	mux.HandleFunc("/credentials/delete/:id", auth.Authenticate(handler.DeleteCredential))
+	mux.HandleFunc("/deployments", auth.AuthenticateWithRequestID(handler.GetDeployments))
+	mux.HandleFunc("/credentials", auth.AuthenticateWithRequestID(handler.GetCredentials))
+	mux.HandleFunc("/credentials/new", auth.AuthenticateWithRequestID(handler.CreateCredentials))
+	mux.HandleFunc("/credentials/update/:id", auth.AuthenticateWithRequestID(handler.UpdateCredential))
+	mux.HandleFunc("/credentials/delete/:id", auth.AuthenticateWithRequestID(handler.DeleteCredential))
+
+	logger.Debug("Routes registered successfully")
 
 	// Apply CORS middleware
 	corsMiddleware := cors.New(cors.Options{
@@ -78,34 +97,38 @@ func main() {
 	})
 
 	handler := corsMiddleware.Handler(mux)
+	logger.Debug("CORS middleware applied")
 
 	server := &http.Server{
-		Addr:    ":8080", //eventually add this to .env
+		Addr:    ":8080", // eventually add this to .env
 		Handler: handler,
 	}
 
-	//start server in goroutine
+	// Start server in goroutine
 	go func() {
-		log.Printf("Server starting on port %s", server.Addr)
-		if err := server.ListenAndServe(); err != nil {
-			log.Fatalf("Server failed to start: %v", err)
+		logger.WithField("port", server.Addr).Info("Server starting")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.WithError(err).Fatal("Server failed to start")
 		}
 	}()
 
-	//GRACEFULL SHUTDOWN
-
+	// GRACEFUL SHUTDOWN
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+
+	// wait for shutdown signal
+	sig := <-quit
+	logger.WithField("signal", sig.String()).Info("Shutdown signal received")
 
 	// deadline for server shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Shutdown server
+	// shutdown server
+	logger.Info("Shutting down server...")
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		logger.WithError(err).Fatal("Server forced to shutdown")
 	}
 
-	log.Println("Server stopped gracefully")
+	logger.Info("Server stopped gracefully")
 }
