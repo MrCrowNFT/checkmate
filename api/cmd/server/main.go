@@ -6,7 +6,6 @@ import (
 	"checkmate/api/internal/storage"
 	"checkmate/api/internal/utils"
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,9 +14,16 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	//init logger
+	if os.Getenv("ENV") == "production" {
+		log.SetLevel(log.InfoLevel)
+	} else {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	//debugging the working directory
 	currentDir, err := os.Getwd()
