@@ -192,7 +192,6 @@ func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error)
 
 	logger.Debug("Checking if cache exists")
 
-	//we get the oldest last_updated_at deployment that has the platform id
 	query := `
         SELECT COUNT(*), MAX(last_updated_at) 
         FROM deployment_cache 
@@ -200,7 +199,7 @@ func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error)
     `
 
 	var count int
-	var lastUpdatedStr sql.NullString // Change to NullString instead of NullTime
+	var lastUpdatedStr sql.NullString
 
 	err := storage.DB.QueryRowContext(ctx, query, credentialID).Scan(&count, &lastUpdatedStr)
 	if err != nil {
@@ -214,8 +213,11 @@ func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error)
 		return false, time.Time{}, nil
 	}
 
-	// Parse the string into a time.Time
-	lastUpdated, err := time.Parse(time.RFC3339, lastUpdatedStr.String)
+	// Log the raw timestamp for debugging
+	logger.WithField("raw_timestamp", lastUpdatedStr.String).Debug("Raw timestamp from database")
+
+	// For SQLite timestamps - use a more permissive parser
+	lastUpdated, err := parseSQLiteTimestamp(lastUpdatedStr.String)
 	if err != nil {
 		logger.WithError(err).Error("Failed to parse last_updated_at timestamp")
 		return false, time.Time{}, fmt.Errorf("failed to parse timestamp: %w", err)
@@ -226,6 +228,37 @@ func CacheExists(ctx context.Context, credentialID int) (bool, time.Time, error)
 		"last_updated_at": lastUpdated,
 	}).Debug("Cache check complete")
 	return true, lastUpdated, nil
+}
+
+// Helper function to parse SQLite timestamps in various formats
+func parseSQLiteTimestamp(timestamp string) (time.Time, error) {
+	// Try multiple formats that SQLite might use
+	formats := []string{
+		"2006-01-02 15:04:05.999999999-07:00", // Format from your error message
+		"2006-01-02 15:04:05.999999999",       // Without timezone
+		"2006-01-02 15:04:05-07:00",           // With timezone, no fractional seconds
+		"2006-01-02 15:04:05",                 // Basic format
+		time.RFC3339,                          // Standard format
+	}
+
+	var parseErr error
+	for _, format := range formats {
+		t, err := time.Parse(format, timestamp)
+		if err == nil {
+			return t, nil
+		}
+		parseErr = err
+	}
+
+	// If we can't parse with standard formats, try a more aggressive approach
+	// This handles cases where SQLite might have strange formats
+	t, err := time.ParseInLocation("2006-01-02 15:04:05.999999999-07:00", timestamp, time.Local)
+	if err == nil {
+		return t, nil
+	}
+
+	// Return the last error if all parsing attempts fail
+	return time.Time{}, parseErr
 }
 
 // gets fresh deployments from cache or updates cache if stale
