@@ -1,5 +1,327 @@
 @import "tailwindcss";
 
-
-
 @custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Checkmate Light Mode Theme */
+  --radius: 0.25rem; /* 4px border radius */
+
+  /* Background/Foreground */
+  --background: #ffffff; /* White background */
+  --foreground: #212121; /* Dark Gray text */
+
+  /* Card */
+  --card: #ffffff; /* White */
+  --card-foreground: #212121; /* Dark Gray text */
+
+  /* Popover */
+  --popover: #ffffff; /* White */
+  --popover-foreground: #212121; /* Dark Gray text */
+
+  /* Primary - Blue */
+  --primary: #2962ff; /* Blue */
+  --primary-foreground: #ffffff; /* White */
+
+  /* Secondary - Gray */
+  --secondary: #757575; /* Medium Gray */
+  --secondary-foreground: #ffffff; /* White */
+
+  /* Accent - Success */
+  --accent: #4caf50; /* Green success */
+  --accent-foreground: #ffffff; /* White */
+
+  /* Muted */
+  --muted: #f5f5f5; /* Very Light Gray background */
+  --muted-foreground: #757575; /* Medium Gray text */
+
+  /* Destructive */
+  --destructive: #f44336; /* Red error */
+  --destructive-foreground: #ffffff; /* White */
+
+  /* Border & Input */
+  --border: #e0e0e0; /* Very Light Gray border */
+  --input: #e0e0e0; /* Very Light Gray border */
+  --ring: rgba(41, 98, 255, 0.5); /* Primary blue at 50% opacity */
+
+  /* Charts/Status Colors */
+  --chart-1: #4caf50; /* Green success */
+  --chart-2: #ffc107; /* Amber warning */
+  --chart-3: #f44336; /* Red error */
+  --chart-4: #2962ff; /* Blue primary */
+  --chart-5: #bdbdbd; /* Light Gray inactive */
+
+  /* Sidebar */
+  --sidebar: #ffffff; /* White - Same as background */
+  --sidebar-foreground: #212121; /* Dark Gray - Same as foreground */
+  --sidebar-primary: #2962ff; /* Blue - Same as primary */
+  --sidebar-primary-foreground: #ffffff; /* White */
+  --sidebar-accent: #4caf50; /* Green - Same as accent */
+  --sidebar-accent-foreground: #ffffff; /* White */
+  --sidebar-border: #e0e0e0; /* Very Light Gray - Same as border */
+  --sidebar-ring: rgba(41, 98, 255, 0.5); /* Primary at 50% opacity */
+}
+
+.dark {
+  /* Checkmate Dark Mode Theme */
+
+  /* Background/Foreground */
+  --background: #121212; /* Very Dark Gray */
+  --foreground: #ffffff; /* White text */
+
+  /* Card */
+  --card: #1e1e1e; /* Slightly lighter than background */
+  --card-foreground: #ffffff; /* White text */
+
+  /* Popover */
+  --popover: #1e1e1e; /* Same as card */
+  --popover-foreground: #ffffff; /* White text */
+
+  /* Primary - Light Blue */
+  --primary: #82b1ff; /* Light Blue */
+  --primary-foreground: #121212; /* Very Dark Gray */
+
+  /* Secondary - Light Gray */
+  --secondary: #bdbdbd; /* Light Gray */
+  --secondary-foreground: #121212; /* Very Dark Gray */
+
+  /* Accent - Light Green */
+  --accent: #81c784; /* Light Green success */
+  --accent-foreground: #121212; /* Very Dark Gray */
+
+  /* Muted */
+  --muted: #2d2d2d; /* Muted background */
+  --muted-foreground: #bdbdbd; /* Light Gray text */
+
+  /* Destructive */
+  --destructive: #e57373; /* Light Red error */
+  --destructive-foreground: #121212; /* Very Dark Gray */
+
+  /* Border & Input */
+  --border: #424242; /* Dark Gray border */
+  --input: #424242; /* Dark Gray input border */
+  --ring: rgba(130, 177, 255, 0.5); /* Primary at 50% opacity */
+
+  /* Charts/Status Colors - more vibrant for dark mode */
+  --chart-1: #81c784; /* Light Green success */
+  --chart-2: #ffd54f; /* Light Amber warning */
+  --chart-3: #e57373; /* Light Red error */
+  --chart-4: #82b1ff; /* Light Blue primary */
+  --chart-5: #757575; /* Medium Gray inactive */
+
+  /* Sidebar */
+  --sidebar: #1e1e1e; /* Slightly lighter than background */
+  --sidebar-foreground: #ffffff; /* White - Same as foreground */
+  --sidebar-primary: #82b1ff; /* Light Blue - Same as primary */
+  --sidebar-primary-foreground: #121212; /* Very Dark Gray */
+  --sidebar-accent: #81c784; /* Light Green - Same as accent */
+  --sidebar-accent-foreground: #121212; /* Very Dark Gray */
+  --sidebar-border: #424242; /* Dark Gray - Same as border */
+  --sidebar-ring: rgba(130, 177, 255, 0.5); /* Primary at 50% opacity */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    @apply font-bold;
+  }
+  h1 {
+    @apply text-2xl leading-normal; /* 24px / 1.5rem */
+  }
+  h2 {
+    @apply text-xl leading-normal; /* 20px / 1.25rem */
+  }
+  h3 {
+    @apply text-base font-medium leading-normal; /* 16px / 1rem */
+  }
+  h4 {
+    @apply text-sm font-medium leading-normal; /* 14px / 0.875rem */
+  }
+  p,
+  li,
+  div {
+    @apply text-sm; /* 14px / 0.875rem */
+  }
+  small {
+    @apply text-xs; /* 12px / 0.75rem */
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded bg-card p-4 text-card-foreground shadow-sm;
+  }
+
+  .card.light {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .card.dark {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-primary {
+    @apply rounded bg-primary px-4 py-2 text-primary-foreground transition-colors duration-200 ease-in-out hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply rounded border border-secondary px-4 py-2 text-secondary transition-colors duration-200 ease-in-out hover:bg-secondary/10;
+  }
+
+  .status-indicator {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+
+  .status-success {
+    @apply bg-chart-1;
+  }
+
+  .status-warning {
+    @apply bg-chart-2;
+  }
+
+  .status-error {
+    @apply bg-chart-3;
+  }
+
+  .status-inactive {
+    @apply bg-chart-5;
+  }
+}
+
+/* Spacing system */
+.space-1 {
+  margin: 8px;
+}
+.space-2 {
+  margin: 16px;
+}
+.space-3 {
+  margin: 24px;
+}
+.space-4 {
+  margin: 32px;
+}
+.space-5 {
+  margin: 40px;
+}
+
+.p-1 {
+  padding: 8px;
+}
+.p-2 {
+  padding: 16px;
+}
+.p-3 {
+  padding: 24px;
+}
+.p-4 {
+  padding: 32px;
+}
+.p-5 {
+  padding: 40px;
+}
+
+/* Container max width */
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Project card sizing */
+.project-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Navigation dimensions */
+.sidebar {
+  width: 240px;
+  transition: width 0.2s ease-in-out;
+}
+.sidebar.collapsed {
+  width: 64px;
+}
+.topbar {
+  height: 56px;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 600px) {
+  /* Mobile styles */
+  .project-card {
+    max-width: 100%;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  /* Tablet styles */
+  .project-card {
+    max-width: 320px;
+  }
+}
+
+@media (min-width: 961px) {
+  /* Desktop styles */
+  .project-card {
+    max-width: 400px;
+  }
+}
