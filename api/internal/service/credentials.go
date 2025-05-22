@@ -42,7 +42,7 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 	//copy the result of row in cred and append it to credentials the got the next row
 	for rows.Next() {
 		var cred model.PlatformCredential
-		if err := rows.Scan(&cred.ID, &cred.UserID, &cred.Platform, &cred.Name, &cred.APIKey, &cred.CreatedAt); err != nil {
+		if err := rows.Scan(&cred.ID, &cred.UserID, &cred.Platform, &cred.APIKey, &cred.CreatedAt); err != nil {
 			logger.WithError(err).Error("Failed to scan credential row")
 			return nil, fmt.Errorf("failed to scan credential row: %w", err)
 		}
@@ -77,7 +77,7 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 
 	var cred model.PlatformCredential
 	err := storage.DB.QueryRowContext(ctx, query, id, userID).Scan(
-		&cred.ID, &cred.UserID, &cred.Platform, &cred.Name, &cred.APIKey, &cred.CreatedAt)
+		&cred.ID, &cred.UserID, &cred.Platform, &cred.APIKey, &cred.CreatedAt)
 
 	if err != nil {
 		logger.WithError(err).Error("Failed to get credential")
@@ -92,7 +92,6 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 
 	logger.WithFields(log.Fields{
 		"platform": cred.Platform,
-		"name":     cred.Name,
 	}).Debug("Retrieved platform credential successfully")
 	return &cred, nil
 }
@@ -103,7 +102,6 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 		"func":       "CreatePlatformCredential",
 		"user_id":    userID,
 		"platform":   input.Platform,
-		"name":       input.Name,
 		"request_id": ctx.Value("request_id"),
 	})
 
@@ -134,7 +132,7 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 	logger.Debug("API key encrypted successfully")
 
 	result, err := storage.DB.ExecContext(
-		ctx, query, userID, input.Platform, input.Name, encryptedAPIKey, now)
+		ctx, query, userID, input.Platform, encryptedAPIKey, now)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create platform credential in database")
 		return nil, fmt.Errorf("failed to create platform credential: %w", err)
@@ -152,7 +150,6 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 		ID:        int(id),
 		UserID:    userID,
 		Platform:  input.Platform,
-		Name:      input.Name,
 		APIKey:    encryptedAPIKey,
 		CreatedAt: now,
 	}, nil
@@ -165,7 +162,6 @@ func UpdatePlatformCredential(ctx context.Context, id int, userID string, input 
 		"credential_id": id,
 		"user_id":       userID,
 		"platform":      input.Platform,
-		"name":          input.Name,
 		"request_id":    ctx.Value("request_id"),
 	})
 
@@ -184,7 +180,7 @@ func UpdatePlatformCredential(ctx context.Context, id int, userID string, input 
               WHERE id = ? AND user_id = ?`
 
 	result, err := storage.DB.ExecContext(
-		ctx, query, input.Platform, input.Name, encryptedAPIKey, id, userID)
+		ctx, query, input.Platform, encryptedAPIKey, id, userID)
 
 	if err != nil {
 		logger.WithError(err).Error("Failed to update platform credential in database")

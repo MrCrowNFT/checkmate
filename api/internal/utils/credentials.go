@@ -10,7 +10,6 @@ func ConvertToSafeCredential(cred *model.PlatformCredential) model.SafeCredentia
 		ID:        cred.ID,
 		UserID:    cred.UserID,
 		Platform:  cred.Platform,
-		Name:      cred.Name,
 		CreatedAt: cred.CreatedAt,
 	}
 }

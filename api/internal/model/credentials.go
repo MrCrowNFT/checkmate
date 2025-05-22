@@ -1,3 +1,5 @@
+//Credentials are the data needed to make the api call to a specific platform to get the deployments
+
 package model
 
 import (
@@ -17,7 +19,7 @@ type PlatformCredential struct {
 type SafeCredential struct {
 	ID        int       `json:"id"`
 	UserID    string    `json:"user_id"`
-	Platform  string    `json:"platform"`          
+	Platform  string    `json:"platform"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
