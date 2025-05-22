@@ -25,7 +25,7 @@ func GetPlatformCredentials(ctx context.Context, userID string) ([]model.Platfor
 
 	logger.Debug("Getting platform credentials started")
 
-	query := `SELECT id, user_id, platform, name, api_key, created_at 
+	query := `SELECT id, user_id, platform, api_key, created_at 
         FROM platform_credentials
         WHERE user_id = ?;`
 
@@ -71,7 +71,7 @@ func GetPlatformCredentialByID(ctx context.Context, id int, userID string) (*mod
 
 	logger.Debug("Getting platform credential by ID started")
 
-	query := `SELECT id, user_id, platform, name, api_key, created_at 
+	query := `SELECT id, user_id, platform, api_key, created_at 
               FROM platform_credentials
               WHERE id = ? AND user_id = ?;`
 
@@ -117,7 +117,7 @@ func CreatePlatformCredential(ctx context.Context, userID string, input *model.P
 
 	logger.Debug("Credential validated successfully")
 
-	query := `INSERT INTO platform_credentials (user_id, platform, name, api_key, created_at)
+	query := `INSERT INTO platform_credentials (user_id, platform, api_key, created_at)
           VALUES (?, ?, ?, ?, ?)`
 
 	now := time.Now()
@@ -176,7 +176,7 @@ func UpdatePlatformCredential(ctx context.Context, id int, userID string, input 
 	logger.Debug("API key encrypted successfully")
 
 	query := `UPDATE platform_credentials
-              SET platform = ?, name = ?, api_key = ?
+              SET platform = ?, api_key = ?
               WHERE id = ? AND user_id = ?`
 
 	result, err := storage.DB.ExecContext(
