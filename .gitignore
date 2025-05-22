@@ -17,3 +17,12 @@ desktop/.env
 
 # Credentials
 /api/internal/config/firebase-credentials.json
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+*.log
+*.sql
+*.bak
