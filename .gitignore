@@ -26,3 +26,4 @@ desktop/.env
 *.log
 *.sql
 *.bak
+api/checkmate.db
