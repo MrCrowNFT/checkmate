@@ -76,7 +76,6 @@ export const useDeployments = create<DeploymentsList>()(
           id: tempId,
           user_id: "temp-user", // this will be replaced by the actual response
           platform: credential.platform,
-          name: credential.name,
           created_at: new Date(),
         };
 

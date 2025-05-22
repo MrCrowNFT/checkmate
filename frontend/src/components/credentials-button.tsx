@@ -7,7 +7,6 @@ export const CredentialsButton = () => {
   const [showCredentials, setShowCredentials] = useState(false);
   const [newCredential, setNewCredential] = useState<platformCredentialInput>({
     platform: "",
-    name: "",
     apiKey: "",
   });
 
@@ -26,7 +25,6 @@ export const CredentialsButton = () => {
       // Reset form after successful addition
       setNewCredential({
         platform: "",
-        name: "",
         apiKey: "",
       });
     } catch (err) {
@@ -72,9 +70,6 @@ export const CredentialsButton = () => {
                 <li key={cred.id} className="py-3">
                   <div className="flex justify-between">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {cred.name}
-                      </p>
                       <div className="flex items-center mt-1">
                         <span className="inline-block w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 mr-2"></span>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -104,22 +99,6 @@ export const CredentialsButton = () => {
                   type="text"
                   name="platform"
                   value={newCredential.platform}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded shadow-sm 
-                           bg-white dark:bg-gray-800 text-gray-800 dark:text-white
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newCredential.name}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded shadow-sm 
                            bg-white dark:bg-gray-800 text-gray-800 dark:text-white
